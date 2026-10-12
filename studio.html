@@ -330,16 +330,21 @@ html body .hud .take.idle #takeHint{display:none}
 html body .hud .take.idle #rec::after{content:"🎵";position:absolute;right:-10px;top:-7px;font-size:18px;line-height:1;pointer-events:none;animation:thBounce 1s ease-in-out infinite;z-index:2}
 html body .hud .bar{position:relative}
 html body .hud #status{display:none}
-html body .hud #bpmTap{flex:none;height:40px;min-height:40px;padding:0 12px;border:2px solid #6a5a30;border-radius:20px;background:#2a241c;flex-direction:row;align-items:baseline;gap:4px}
-html body .hud #bpmTap b{font-size:18px}html body .hud #bpmTap small{font-size:9px;opacity:.7;margin:0}
+html body .hud #bpmTap{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#f4ecdf}
+html body .hud #bpmTap b{font-size:22px;font-weight:900;line-height:1;color:#ffe066;letter-spacing:-.02em}
+html body .hud #bpmTap small{font-size:8px;font-weight:800;letter-spacing:.08em;opacity:.7;margin:0;text-transform:lowercase}
 html body .hud .menu-wrap{flex:none}
-html body .hud .menu-wrap #setupBtn{width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);flex-direction:column}
-html body .hud #setupBtn .lb{font-size:8px;opacity:.75}
+html body .hud .menu-wrap #setupBtn{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;flex-direction:column;gap:2px;color:#f4ecdf}
+html body .hud #setupBtn .ic{display:block!important;font-size:28px;line-height:1;font-weight:900}
+html body .hud #setupBtn .lb{display:none}
 html body .hud .word{order:1}html body .hud .readouts{order:2}html body .hud .corner-meter{order:3}html body .hud .bar{order:4}html body .hud #status{order:5}html body .hud #bpmTap{order:6}html body .hud .menu-wrap{order:7}
 html body .hud .bar #play{flex:0 0 var(--bt);border-color:#3dba6a;color:#7ee07e;background:#1d3a24;flex-direction:column}
 html body .hud .pad .ic{font-family:system-ui,sans-serif;font-weight:900}
-html body .hud .bar .big-clear.wig{animation:clrWig .35s ease-in-out}
-@keyframes clrWig{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+html body .hud .bar .big-clear.pulse{animation:clrPulse .35s ease-out}
+@keyframes clrPulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.14);filter:brightness(1.55)}100%{transform:scale(1);filter:brightness(1)}}
+.card.pending.qflash .lane-fit{overflow:hidden}
+.card.pending.qflash .lane-fit::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;background:linear-gradient(90deg,transparent 0%,#ffe06688 35%,#fff9 50%,#ffe06666 65%,transparent 100%);animation:qWhoosh .38s ease-out forwards}
+@keyframes qWhoosh{0%{transform:translateX(-110%);opacity:.95}100%{transform:translateX(110%);opacity:0}}
 html body .hud .pad .badge{top:-7px;right:-7px;left:auto;min-width:20px;height:20px;padding:0 4px;border-radius:10px;font:900 12px/16px system-ui;border:2px solid #14110e;box-sizing:border-box;letter-spacing:-.02em;white-space:nowrap;z-index:3}
 html body .hud .pad .badge[hidden]{display:none}
 @media (max-width:1100px){html body .hud .corner-meter{display:none}}
@@ -347,9 +352,8 @@ html body .hud .pad .badge[hidden]{display:none}
 @media (max-width:700px){
  html body .hud{flex-wrap:wrap;row-gap:8px;--bt:54px}
  html body .hud .word{order:1}html body .hud .readouts{order:2}
- html body .hud #bpmTap{order:3;margin-left:auto}html body .hud .menu-wrap{order:4}
- html body .hud .menu-wrap #setupBtn{width:44px;height:40px;min-height:40px;border-radius:20px;border-width:2px}
- html body .hud .menu-wrap #setupBtn .lb{display:none}
+ html body .hud #bpmTap{order:3;margin-left:auto}
+ html body .hud .menu-wrap{order:4}
  html body .hud .bar{order:5;flex:1 0 100%;justify-content:space-between;gap:4px}
 }
 @media (prefers-reduced-motion:reduce){html body .hud .take.idle #rec::after{animation:none}}
@@ -413,7 +417,7 @@ html body .hud .pad .badge[hidden]{display:none}
     <button id="padsBtn" type="button" hidden>Pads</button>
   </div>
   <span id="status"></span>
-  <button type="button" id="bpmTap" title="Tap the beat. The tempo follows."><b id="bpmRead">120</b><small>BPM</small></button>
+  <button type="button" id="bpmTap" title="Tap the beat. The tempo follows."><b id="bpmRead">120</b><small>bpm</small></button>
   <div class="menu-wrap">
     <button id="setupBtn" class="pad" title="Save, load, and setup"><span class="ic">⋯</span><span class="lb">More</span></button>
     <div id="setupMenu" class="menu">
@@ -423,7 +427,6 @@ html body .hud .pad .badge[hidden]{display:none}
         <button id="loadProj" type="button" title="Load a project"><span>Load</span></button>
         <button id="roomBtn" type="button" title="A 3D room"><span>Room</span></button>
         <button id="ballBtn" type="button" title="The spectrum on a ball"><span>Ball</span></button>
-        <button id="sleepBtn" type="button" title="A quiet screen for sleep"><span>Sleep</span></button>
       </div>
       <div class="menu-row">
         <button id="obReplay" type="button" title="Replay the friendly tour"><span>Show me around</span></button>
@@ -2094,7 +2097,14 @@ function wipeProject(){
   try{ localStorage.removeItem("studio-project"); }catch(e){}
   location.reload();
 }
-$("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
+function flashClear(){
+  const b=$("clearTake");
+  if(b){ b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); setTimeout(()=>b.classList.remove("pulse"),400); }
+  const card=document.querySelector(".card.pending");
+  if(card){ card.classList.remove("qflash"); void card.offsetWidth; card.classList.add("qflash"); setTimeout(()=>card.classList.remove("qflash"),420); }
+  try{ fxTone(880,220,.18,"triangle",.12); }catch(e){}
+}
+$("clearTake").onclick=()=>{
   seq={t0:0,last:0,events:[]};
   clearRecording();
   stopNoise();
@@ -2102,6 +2112,7 @@ $("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
   persist();
   $("status").textContent="cleared";
   render();
+  flashClear();
 };
 (function(){
   const btn=$("clearTake"); let hold=null, t0=0, ticks=[], ov=null, raf=0;
@@ -2129,11 +2140,10 @@ $("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
     btn.classList.remove("arming"); ticks.forEach(clearTimeout);
     if(hold===null){ return; } // completed
     clearTimeout(hold); hold=null;
-    if(performance.now()-t0<TAP){ tapHint(); }
+    if(performance.now()-t0<TAP){ /* quick tap: onclick clears queue; no overlay */ }
     else { fxPhew(); if(ov){ const o=ov; ov=null; cancelAnimationFrame(raf); o.classList.add("cancel"); setTimeout(()=>o.remove(),300); } }
     $("status").textContent="";
   };
-  function tapHint(){ const b=$("clearTake"); if(!b) return; b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig"); setTimeout(()=>b.classList.remove("wig"),400); }
   btn.addEventListener("pointerup",disarm); btn.addEventListener("pointercancel",disarm);
 })();
 function fxCtx(){ try{ audio(); return ac; }catch(e){ return null; } }
@@ -2332,7 +2342,6 @@ $("bpm").oninput=paintBpm;
 addEventListener("click",e=>{ if(!e.target.closest(".menu-wrap")) $("setupMenu").classList.remove("open"); });
 $("roomBtn").onclick=()=>{ location.href="/playground.html"; };
 $("ballBtn").onclick=()=>{ location.href="/ball.html"; };
-$("sleepBtn").onclick=()=>{ location.href="/sleep.html"; };
 addEventListener("pointerdown",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); });
 addEventListener("touchstart",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); }, {passive:true});
 
