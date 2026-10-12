@@ -425,8 +425,7 @@ html body .hud .pad .badge[hidden]{display:none}
         <button id="micMute" class="pad p-mic" type="button" title="Mute the microphone"><span class="lb">Mic</span></button>
         <button id="saveProj" type="button" title="Save the project"><span>Save</span></button>
         <button id="loadProj" type="button" title="Load a project"><span>Load</span></button>
-        <button id="roomBtn" type="button" title="A 3D room"><span>Room</span></button>
-        <button id="ballBtn" type="button" title="The spectrum on a ball"><span>Ball</span></button>
+        <button id="roomBtn" type="button" title="The room"><span>Room</span></button>
       </div>
       <div class="menu-row">
         <button id="obReplay" type="button" title="Replay the friendly tour"><span>Show me around</span></button>
@@ -2341,7 +2340,6 @@ $("bpmTap").addEventListener("pointerdown", tapBeat);
 $("bpm").oninput=paintBpm;
 addEventListener("click",e=>{ if(!e.target.closest(".menu-wrap")) $("setupMenu").classList.remove("open"); });
 $("roomBtn").onclick=()=>{ location.href="/playground.html"; };
-$("ballBtn").onclick=()=>{ location.href="/ball.html"; };
 addEventListener("pointerdown",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); });
 addEventListener("touchstart",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); }, {passive:true});
 
