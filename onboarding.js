@@ -13,7 +13,7 @@ const css=`
 #ob-layer.in{opacity:1}
 .ob-catch{position:fixed;z-index:8999;background:transparent;cursor:pointer}
 #ob-ring{position:fixed;z-index:9000;pointer-events:none;border-radius:22px;
-  box-shadow:0 0 0 200vmax rgba(4,6,12,.74);transition:left .6s ${EASE},top .6s ${EASE},width .6s ${EASE},height .6s ${EASE}}
+  box-shadow:0 0 0 200vmax rgba(4,6,12,.8);transition:left .6s ${EASE},top .6s ${EASE},width .6s ${EASE},height .6s ${EASE}}
 #ob-ring::before{content:"";position:absolute;inset:-6px;border-radius:26px;border:4px solid rgba(255,255,255,.95);
   box-shadow:0 0 18px 4px rgba(120,200,255,.55),inset 0 0 12px rgba(120,200,255,.35)}
 #ob-ring::after{content:"";position:absolute;inset:-6px;border-radius:26px;border:3px solid rgba(140,210,255,.8);
@@ -89,6 +89,7 @@ function place(){
     Object.assign(c[2].style,{left:"0",top:px(y),width:px(x),height:px(y2-y)});
     Object.assign(c[3].style,{left:px(x2),top:px(y),right:"0",height:px(y2-y)});
   }
+  const pg=$("ob-prog"); if(pg){ const low=(y+y2)/2>H/2; pg.style.top=low?"calc(18px + env(safe-area-inset-top))":"auto"; pg.style.bottom=low?"auto":"calc(18px + env(safe-area-inset-bottom))"; }
   const a=(s.aim&&s.aim())||t, ar=a.getBoundingClientRect(), d=$("ob-dot");
   if(d){ d.style.left=Math.min(Math.max(ar.left+ar.width/2,24),W-24)+"px"; d.style.top=Math.min(Math.max(ar.top+ar.height/2,24),H-24)+"px"; }
 }
@@ -98,7 +99,8 @@ addEventListener("pointerdown",e=>{
   if(!active||step<0) return; const s=STEPS[step];
   if(s.hit(e)){ if(++count>=(s.need||1)){ ok(); const n=step+1; step=-2; clearTimeout(repeatT); setTimeout(()=>{ if(active) go(n); }, reduced()?150:550); } }
 },true);
-addEventListener("keydown",e=>{ if(active){ end(false); return; } idleReset(); },true);
+const onKey=e=>{ if(active){ e.stopImmediatePropagation(); e.preventDefault(); end(false); return; } idleReset(); };
+if("__obKey" in window||document.querySelector("script:not([src])")&&/__obKey/.test(document.head.innerHTML)) window.__obKey=onKey; else addEventListener("keydown",onKey,true);
 addEventListener("resize",place); addEventListener("scroll",place,true);
 setInterval(()=>{ if(active&&step>=0) place(); },500);
 

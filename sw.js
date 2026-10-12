@@ -1,5 +1,5 @@
 /* MUZIK service worker */
-const VERSION = "muzik-v8";
+const VERSION = "muzik-v9";
 const SHELL = ["./", "./studio.html", "./index.html", "./onboarding.js", "./install.js", "./playground.html", "./audio.js", "./visualizer.html",
   "./manifest.webmanifest", "./favicon.svg", "./apple-touch-icon.png",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
