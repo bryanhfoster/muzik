@@ -1,4 +1,4 @@
-/* MUZIK install prompt — no-reading style: giant emoji, giant buttons, voice cue, big ✕ */
+/* MUZIK install prompt — no-reading style: giant emoji, giant buttons, sound cue, big ✕ */
 (function(){
 "use strict";
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
@@ -6,7 +6,7 @@ const standalone=()=>(window.matchMedia&&matchMedia("(display-mode: standalone)"
 const ua=navigator.userAgent||"";
 const isIOS=/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
 let deferred=null, shownAuto=false;
-function say(t){ if(LS.get("muzik.voice")==="off") return; try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.9;u.pitch=1.15;speechSynthesis.speak(u);}catch(e){} }
+function say(){} /* no spoken voice */
 
 // Service worker: register + reload once when a new version takes over
 if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
@@ -30,7 +30,7 @@ const css=`#pwa-scrim{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:
 @media (prefers-reduced-motion:reduce){#pwa-arrow{animation:none}}
 @media (min-width:768px){#pwa-arrow{bottom:auto;top:4px;left:auto;right:150px;transform:none;animation:none}}`;
 const SHARE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>`;
-function close(remember){ ["pwa-scrim","pwa-card","pwa-x","pwa-arrow"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove();}); if(remember) LS.set("muzik.installDismissed","1"); try{speechSynthesis.cancel();}catch(e){} }
+function close(remember){ ["pwa-scrim","pwa-card","pwa-x","pwa-arrow"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove();}); if(remember) LS.set("muzik.installDismissed","1");  }
 function show(manual){
   if(standalone()){ if(manual) say("MUZIK is already on your home screen!"); return; }
   if(!deferred && !isIOS){ if(manual) say("Open the browser menu, then tap install."); if(!manual) return; }

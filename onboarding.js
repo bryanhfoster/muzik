@@ -1,4 +1,4 @@
-/* MUZIK first-run guide that works WITHOUT READING: voice, a giant pointing hand, sound, and heavy focus.
+/* MUZIK first-run guide that works WITHOUT READING: a giant pointing hand, sound, and heavy focus.
    During a step only the target (and the big ✕) can be clicked; everything else is blocked. */
 (()=>{
 "use strict";
@@ -23,8 +23,6 @@ const css=`
 #ob-dots i.on{background:#ffe600;transform:scale(1.4);box-shadow:0 0 18px #ffe600}#ob-dots i.done{background:#3ddc5a}
 .ob-big{position:fixed;z-index:9005;width:84px;height:84px;border-radius:50%;border:6px solid #fff;font:900 46px/1 system-ui;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 0 0 4px #000,0 6px 20px rgba(0,0,0,.6)}
 #ob-x{top:14px;right:14px;background:#e02020;color:#fff}
-#ob-spk{top:14px;left:14px;background:#2a7bff;color:#fff;font-size:42px}
-#ob-spk.off{background:#555}
 #ob-scrim{position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #ob-play{position:fixed;z-index:9002;left:50%;top:50%;width:min(300px,70vmin);height:min(300px,70vmin);margin:calc(min(300px,70vmin)/-2) 0 0 calc(min(300px,70vmin)/-2);border-radius:50%;background:#3ddc5a;border:12px solid #fff;color:#fff;font:900 min(150px,35vmin)/1 system-ui;cursor:pointer;box-shadow:0 0 0 6px #000,0 0 60px 20px rgba(61,220,90,.7);animation:obPulse 1.3s ease-in-out infinite;padding:0 0 0 .15em}
 #ob-play .s{position:absolute;right:-6px;top:-6px;font-size:64px;background:#2a7bff;border:5px solid #fff;border-radius:50%;width:96px;height:96px;display:flex;align-items:center;justify-content:center;padding:0}
@@ -39,13 +37,8 @@ const css=`
 `;
 const st=document.createElement("style"); st.textContent=css; document.head.appendChild(st);
 
-/* ---- voice ---- */
-const speechOK=()=>"speechSynthesis" in window && typeof SpeechSynthesisUtterance!=="undefined";
-const voiceOn=()=>LS.get("muzik.voice")!=="off";
-function say(text){
-  if(!speechOK()||!voiceOn()) return;
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=.9; u.pitch=1.15; u.volume=1; speechSynthesis.speak(u);}catch(e){}
-}
+/* no spoken voice: cues are sound + motion only */
+function say(){}
 /* ---- own little synth for chimes / demos (separate from the app's audio) ---- */
 let ac=null;
 function ctx(){ try{ if(!ac){const A=window.AudioContext||window.webkitAudioContext; if(!A) return null; ac=new A();} if(ac.state==="suspended") ac.resume(); return ac;}catch(e){return null;} }
@@ -73,15 +66,12 @@ const CHEERS=["Yay!","Nice!","Wow!","Great!","Yay!","Lovely!","Yay!"];
 let step=-1, count=0, recOn=false, active=false, keepBase=0, keepTimer=0, repeatT=0, handPos=null;
 
 function el(tag,attrs,html){const e=document.createElement(tag);Object.assign(e,attrs||{});if(html!=null)e.innerHTML=html;return e;}
-function clean(keepChrome){["ob-hole","ob-hand","ob-ripple","ob-icon","ob-dots","ob-scrim","ob-play","ob-yay"].concat(keepChrome?[]:["ob-x","ob-spk"]).forEach(id=>{const e=$(id);if(e)e.remove();});
+function clean(keepChrome){["ob-hole","ob-hand","ob-ripple","ob-icon","ob-dots","ob-scrim","ob-play","ob-yay"].concat(keepChrome?[]:["ob-x"]).forEach(id=>{const e=$(id);if(e)e.remove();});
   document.querySelectorAll(".ob-dim").forEach(d=>d.remove()); clearTimeout(repeatT);}
-function end(done){active=false;step=-1;clearInterval(keepTimer);clean(true);LS.set("muzik.onboarded","1");if(done)celebrate();else{clean();try{speechSynthesis.cancel();}catch(e){}}}
+function end(done){active=false;step=-1;clearInterval(keepTimer);clean(true);LS.set("muzik.onboarded","1");if(done)celebrate();else{clean();}}
 function chrome(){
   if(!$("ob-x")){const x=el("button",{id:"ob-x",className:"ob-big",type:"button"},"✕"); x.setAttribute("aria-label","Close tour"); x.onclick=e=>{e.stopPropagation();end(false);}; document.body.appendChild(x);}
-  if(!$("ob-spk")){const s=el("button",{id:"ob-spk",className:"ob-big",type:"button"}); s.onclick=e=>{e.stopPropagation();LS.set("muzik.voice",voiceOn()?"off":"on");syncSpk();if(voiceOn())say(step>=0?STEPS[step].say:"Voice on.");else try{speechSynthesis.cancel();}catch(_){}}; document.body.appendChild(s);}
-  syncSpk();
 }
-function syncSpk(){const s=$("ob-spk"); if(!s) return; s.textContent=voiceOn()?"🔊":"🔇"; s.classList.toggle("off",!voiceOn()); s.setAttribute("aria-label",voiceOn()?"Voice on":"Voice off"); s.style.display=speechOK()?"":"none";}
 
 function welcome(){
   clean(); active=true; step=-1;
