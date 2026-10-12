@@ -332,6 +332,10 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
         <button id="ballBtn" type="button" title="The spectrum on a ball"><span>Ball</span></button>
         <button id="sleepBtn" type="button" title="A quiet screen for sleep"><span>Sleep</span></button>
       </div>
+      <div class="menu-row">
+        <button id="obReplay" type="button" title="Replay the friendly tour"><span>Show me around</span></button>
+        <button id="obNudges" type="button" title="Gentle hints when you pause"><span>Hints: on</span></button>
+      </div>
       <input id="loadFile" type="file" accept="application/json,.json" hidden>
       <label title="How bright the keyboard tones are. Left is muffled, right is sharp."><span>Bright</span><input id="cut" type="range" min="200" max="8000" value="3200"></label>
       <label title="How long a finger-drag takes to reach the next note."><span>Slide</span><input id="glide" type="range" min="1" max="80" value="18"></label>
@@ -2450,5 +2454,6 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
   mq.addEventListener&&mq.addEventListener("change", ()=>{ pts.length=0; ctx.clearRect(0,0,W,H); });
 })();
 </script>
+<script src="onboarding.js" defer></script>
 </body>
 </html>
