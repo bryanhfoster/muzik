@@ -1,6 +1,6 @@
-# muzik
+# MUZIK
 
-A music studio app that runs in the browser (formerly SAM-PLE / Sample; the MUZIK rebrand comes later). It was built in Grok's app builder.
+A music studio app that runs in the browser (formerly SAM-PLE / Sample, titled "Spectrum" in-app; now rebranded MUZIK). It was built in Grok's app builder.
 
 - Original live URL: https://sam-ple.grok.me/studio.html
 - Exported from the hosted Grok site on 2026-10-12. Original paths were kept.
