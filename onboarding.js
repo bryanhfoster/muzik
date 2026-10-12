@@ -199,11 +199,11 @@ function nudge(){
   softChime(); say(pick[3]);
   setTimeout(()=>{ if(nudged===target) unNudge(); idleReset(); },5000);
 }
-function syncNudgeBtn(){ const b=$("obNudges"); if(b) b.firstElementChild.textContent=(LS.get("muzik.nudges")==="off"?"💡 Hints: off":"💡 Hints: on"); }
+function syncNudgeBtn(){ const b=$("obNudges"); if(!b) return; const on=LS.get("muzik.nudges")!=="off"; b.classList.toggle("off", !on); b.title=on?"Hints on":"Hints off"; const lb=b.querySelector(".tlb"); if(lb) lb.textContent="Hints"; }
 
 function init(){
-  const r=$("obReplay"); if(r){ r.onclick=e=>{e.stopPropagation(); const m=$("setupMenu"); if(m) m.classList.remove("open"); welcome();}; r.firstElementChild.textContent="👆 Show me around"; }
-  const n=$("obNudges"); if(n) n.onclick=e=>{e.stopPropagation(); LS.set("muzik.nudges",LS.get("muzik.nudges")==="off"?"on":"off"); syncNudgeBtn(); if(LS.get("muzik.nudges")!=="off") softChime(); idleReset();};
+  const r=$("obReplay"); if(r){ r.onclick=e=>{e.stopPropagation(); if(window.muzikCloseMenu) window.muzikCloseMenu(); else { const m=$("setupMenu"); if(m) m.classList.remove("open"); } welcome();}; }
+  const n=$("obNudges"); if(n) n.onclick=e=>{e.stopPropagation(); LS.set("muzik.nudges", LS.get("muzik.nudges")==="off"?"on":"off"); syncNudgeBtn(); if(LS.get("muzik.nudges")!=="off") softChime(); idleReset();};
   syncNudgeBtn();
   window.muzikTour={start:welcome,go,end};
   if(!LS.get("muzik.onboarded")) setTimeout(welcome,400); else idleReset();
