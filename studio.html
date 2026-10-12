@@ -352,11 +352,7 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
 #captureLast{position:relative}
 .hud .pad .ic{font-size:30px}
 .take{position:relative}
-#takeHint{display:none}
 .take.idle #previewTake,.take.idle #captureLast{display:none}
-.take.idle #takeHint{display:flex;align-items:center;gap:8px;font:900 22px system-ui;color:#ffe9a8;padding:6px 14px;border-radius:18px;background:#ffffff14;animation:thPulse 1.6s ease-in-out infinite;white-space:nowrap}
-#takeHint .bn{display:inline-block;font-size:30px;animation:thBounce 1s ease-in-out infinite}
-@keyframes thPulse{50%{transform:scale(1.06);background:#ffffff26}}
 @keyframes thBounce{50%{transform:translateY(-6px)}}
 .take.popin #previewTake,.take.popin #captureLast{animation:popIn .45s cubic-bezier(.3,1.8,.5,1)}
 @keyframes popIn{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
@@ -375,7 +371,7 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
 #clrHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;display:flex;flex-direction:column;align-items:center;font:900 min(20vmin,110px) system-ui;color:#fff;text-shadow:0 4px 14px #000;animation:hintPulse .6s ease-in-out 3}
 #clrHint .hd{font-size:min(28vmin,150px);animation:thBounce .6s infinite}
 @keyframes hintPulse{50%{transform:translate(-50%,-50%) scale(1.12)}}
-@media (prefers-reduced-motion:reduce){#takeHint,#takeHint .bn,#clrHint,#clrHint .hd{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#clrHint,#clrHint .hd{animation:none!important}}
 /* clean top bar */
 html body .hud{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:68px;padding:6px 10px;--bt:54px;--rad:16px}
 html body .hud .word{font-size:12px;letter-spacing:.14em;flex:none}
@@ -398,9 +394,6 @@ html body .hud #captureLast.ready{background:#2f7a3c;border-color:#bff5cc;color:
 html body .hud .take.idle #previewTake,html body .hud .take.idle #captureLast{display:flex}
 html body .hud .bar .big-clear{background:transparent;border-color:#e0203a;color:#ff4a5e}
 html body .hud .pad .badge{top:-8px;right:-8px;min-width:24px;height:24px;border-radius:12px;font:900 13px/24px system-ui;padding:0 5px}
-html body .hud #takeHint{display:none}
-html body .hud .take.idle #takeHint{display:none}
-html body .hud .take.idle #rec::after{content:"🎵";position:absolute;right:-10px;top:-7px;font-size:18px;line-height:1;pointer-events:none;animation:thBounce 1s ease-in-out infinite;z-index:2}
 html body .hud .bar{position:relative}
 html body .hud #status{display:none}
 html body .hud #bpmTap{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#f4ecdf}
@@ -429,8 +422,8 @@ html body .hud .pad .badge[hidden]{display:none}
  html body .hud .menu-wrap{order:4}
  html body .hud .bar{order:5;flex:1 0 100%;justify-content:space-between;gap:4px}
 }
-@media (prefers-reduced-motion:reduce){html body .hud .take.idle #rec::after{animation:none}}
 </style>
+<script>addEventListener("keydown",e=>{if(window.__obKey)window.__obKey(e);},true);</script>
 </head>
 <body>
 <div id="pullHint">keep holding to reload<i></i></div>
@@ -484,7 +477,6 @@ html body .hud .pad .badge[hidden]{display:none}
       <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="ic">●</span><span class="lb">Rec</span></button>
       <button id="previewTake" class="pad p-hear is-wait" aria-disabled="true" title="Play back what you just did"><span class="ic">🔊</span><span class="lb">Hear</span></button>
       <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="ic">✓</span><span class="lb">Keep</span><span class="badge"></span></button>
-      <div id="takeHint" aria-hidden="true"><span class="bn">🎵</span></div>
     </div>
     <button id="clearTake" class="pad p-clr big-clear" title="Clear the queue. Hold to reset."><span class="charge"></span><span class="ic">✕</span><span class="lb">Clear</span></button>
     <button id="padsBtn" type="button" hidden>Pads</button>
@@ -505,6 +497,7 @@ html body .hud .pad .badge[hidden]{display:none}
       <button id="loadProj" class="menu-tile" type="button" title="Load a project"><span class="tic">📂</span><span class="tlb">Load</span></button>
       <button id="roomBtn" class="menu-tile" type="button" title="Open the room playground"><span class="tic">🏠</span><span class="tlb">Room</span></button>
       <button id="vizBtn" class="menu-tile" type="button" title="Visualizer" onclick="location.href='/visualizer.html'"><span class="tic">🌀</span><span class="tlb">Viz</span></button>
+      <button id="fifthsBtn" class="menu-tile" type="button" title="Chords: circle of fifths, hex grid, chord pads" onclick="location.href='/fifths.html'"><span class="tic">⬡</span><span class="tlb">Chords</span></button>
     </div>
     <div class="menu-group" aria-label="Help">
       <button id="obReplay" class="menu-tile" type="button" title="Replay the friendly tour"><span class="tic">👆</span><span class="tlb">Tour</span></button>
