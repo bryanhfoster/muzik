@@ -1,6 +1,6 @@
 /* MUZIK service worker */
-const VERSION = "muzik-v5";
-const SHELL = ["./", "./studio.html", "./index.html", "./onboarding.js", "./install.js",
+const VERSION = "muzik-v7";
+const SHELL = ["./", "./studio.html", "./index.html", "./onboarding.js", "./install.js", "./playground.html", "./audio.js",
   "./manifest.webmanifest", "./favicon.svg", "./apple-touch-icon.png",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
 self.addEventListener("install", e => {
