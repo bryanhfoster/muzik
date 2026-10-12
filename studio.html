@@ -338,6 +338,10 @@ html body .hud #setupBtn .lb{font-size:8px;opacity:.75}
 html body .hud .word{order:1}html body .hud .readouts{order:2}html body .hud .corner-meter{order:3}html body .hud .bar{order:4}html body .hud #status{order:5}html body .hud #bpmTap{order:6}html body .hud .menu-wrap{order:7}
 html body .hud .bar #play{flex:0 0 var(--bt);border-color:#3dba6a;color:#7ee07e;background:#1d3a24;flex-direction:column}
 html body .hud .pad .ic{font-family:system-ui,sans-serif;font-weight:900}
+html body .hud .bar .big-clear.wig{animation:clrWig .35s ease-in-out}
+@keyframes clrWig{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+html body .hud .pad .badge{top:-7px;right:-7px;left:auto;min-width:20px;height:20px;padding:0 4px;border-radius:10px;font:900 12px/16px system-ui;border:2px solid #14110e;box-sizing:border-box;letter-spacing:-.02em;white-space:nowrap;z-index:3}
+html body .hud .pad .badge[hidden]{display:none}
 @media (max-width:1100px){html body .hud .corner-meter{display:none}}
 @media (max-width:900px){html body .hud{gap:6px;padding:6px 8px}html body .hud .bar{gap:7px}html body .hud #noteHud small{display:none}}
 @media (max-width:700px){
@@ -2129,7 +2133,7 @@ $("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
     else { fxPhew(); if(ov){ const o=ov; ov=null; cancelAnimationFrame(raf); o.classList.add("cancel"); setTimeout(()=>o.remove(),300); } }
     $("status").textContent="";
   };
-  function tapHint(){ const old=$("clrHint"); if(old) old.remove(); const h=document.createElement("div"); h.id="clrHint"; h.innerHTML='<span class="hd">👇</span><b>hold</b>'; document.body.appendChild(h); voice("Hold to clear."); buzz(20); setTimeout(()=>h.remove(),1800); }
+  function tapHint(){ const b=$("clearTake"); if(!b) return; b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig"); setTimeout(()=>b.classList.remove("wig"),400); }
   btn.addEventListener("pointerup",disarm); btn.addEventListener("pointercancel",disarm);
 })();
 function fxCtx(){ try{ audio(); return ac; }catch(e){ return null; } }
