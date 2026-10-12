@@ -18,7 +18,7 @@ button span, .cell .nm { pointer-events:none; }
 .noises button, .drums button, .tones button, .cell, .mash { touch-action:none; }
 .pad, .bar button { touch-action:manipulation; }
 input, textarea { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
-body { display:grid; grid-template-rows:minmax(70px,.7fr) 7px auto minmax(110px,1.45fr) auto; grid-template-areas:"desk" "seam" "hud" "keys" "controls"; height:100dvh; width:100%; padding:max(28px, env(safe-area-inset-top, 0px)) 0 0; }
+body { display:grid; grid-template-rows:var(--tlh, minmax(96px,1.05fr)) 18px auto minmax(110px,1.45fr) auto; grid-template-areas:"desk" "seam" "hud" "keys" "controls"; height:100dvh; width:100%; padding:max(28px, env(safe-area-inset-top, 0px)) 0 0; }
 header {
   grid-area:controls; position:relative; display:flex; flex-direction:column;
   padding:4px 6px max(10px, env(safe-area-inset-bottom, 0px));
@@ -116,7 +116,12 @@ input[type="range"] { -webkit-appearance:none; appearance:none; width:100%; heig
 .cell.last, .cell.down { filter:brightness(1.35) saturate(1.1); box-shadow:inset 0 0 0 3px #fff, inset 0 0 0 5px rgba(0,0,0,.75), inset 0 0 10px 4px rgba(255,255,255,.55); z-index:0; }
 .cell .nm { position:absolute; top:1px; left:2px; font-size:10px; font-weight:900; color:#fff; line-height:1; white-space:nowrap; letter-spacing:-0.04em; pointer-events:none; text-shadow:0 1px 2px #000, 0 0 3px #000; }
 .cell.octave .nm { color:#ffe066; font-size:10px; }
-.seam { grid-area:seam; background:linear-gradient(#5a5044,#1a1612 40%,#000); box-shadow:inset 0 1px 0 #ffe06688, inset 0 -2px 0 #000; touch-action:none; position:relative; }
+.seam { grid-area:seam; background:linear-gradient(#5a5044,#2a241c 45%,#000); box-shadow:inset 0 1px 0 #ffe066aa, inset 0 -2px 0 #000; touch-action:none; position:relative; display:flex; align-items:center; justify-content:center; z-index:31; }
+.seam .grip { flex:none; width:64px; height:6px; border-radius:3px; background:repeating-linear-gradient(90deg,#ffe066 0 6px,transparent 6px 10px); opacity:.85; pointer-events:none; }
+.seam:hover .grip, .seam.dragging .grip { opacity:1; box-shadow:0 0 6px #ffe066; }
+.seam .tl-toggle { position:absolute; min-height:0 !important; max-height:16px; box-sizing:border-box; right:6px; top:50%; transform:translateY(-50%); height:16px; min-width:56px; padding:0 8px; font:800 10px/14px monospace; letter-spacing:.06em; color:#111; background:#ffe066; border:1px solid #000; border-radius:8px; }
+body.tl-collapsed .desk { overflow:hidden; }
+#tracer { position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:2147483646; }
 .desk { grid-area:desk; min-height:0; min-width:0; overflow-x:hidden; overflow-y:auto; background:#12100c; padding:0 8px 6px; touch-action:pan-y; }
 .card { border-bottom:1px solid #2a261f; width:100%; max-width:100%; min-width:0; overflow:hidden; }
 .head { height:auto; min-height:34px; padding:4px; display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:4px; align-items:center; background:#201c16; width:100%; min-width:0; }
@@ -279,7 +284,8 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
   </div>
 </div>
 <div class="keys-row"><div id="keys" class="spectrum"></div></div>
-<div class="seam"></div>
+<div class="seam" id="tlHandle" role="separator" aria-orientation="horizontal" title="Drag to resize the timeline. Double-click to collapse."><span class="grip"></span><button type="button" class="tl-toggle" id="tlToggle" title="Collapse or expand the timeline">▲ Hide</button></div>
+<canvas id="tracer" aria-hidden="true"></canvas>
 <div class="desk" id="desk"></div>
 <script>
 
@@ -342,7 +348,6 @@ function wirePull(el){
   el.addEventListener("touchcancel", stopPull);
 }
 wirePull($("desk"));
-wirePull(document.querySelector(".seam"));
 const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const DRUMS=["kick","snare","clap","rim","tom","hat","open","crash","cow","shake"];
 function drumForKey(k){
@@ -917,7 +922,7 @@ function drawPending(){
   h.appendChild(meta);
   const lane=document.createElement("div"); lane.className="lane-fit";
   const cv=document.createElement("canvas"); cv.className="pend-roll";
-  cv.width=timeW(); cv.height=46;
+  { const d=window.devicePixelRatio||1; cv.dataset.dpr=d; cv.width=Math.round(timeW()*d); cv.height=Math.round(46*d); }
   cv.style.cssText="position:absolute;inset:0;width:100%;height:100%;";
   const ph=document.createElement("div"); ph.className="ph";
   lane.appendChild(cv); lane.appendChild(ph);
@@ -936,7 +941,8 @@ function paintKeep(){
   const cv=document.querySelector("canvas.pend-roll");
   if(!cv) return;
   const ctx=cv.getContext("2d");
-  const w=cv.width, h=cv.height;
+  const dd=Number(cv.dataset.dpr)||1; ctx.setTransform(dd,0,0,dd,0,0);
+  const w=cv.width/dd, h=cv.height/dd;
   ctx.fillStyle="#1b1812"; ctx.fillRect(0,0,w,h);
   lanePaintGrid(ctx,w,h);
   const samples=takeSamples();
@@ -1028,7 +1034,7 @@ function render(){
   desk.innerHTML="";
   const ruler=document.createElement("canvas");
   ruler.className="ruler-fit";
-  ruler.width=timeW(); ruler.height=18;
+  { const d=window.devicePixelRatio||1; ruler.dataset.dpr=d; ruler.width=Math.round(timeW()*d); ruler.height=Math.round(18*d); }
   drawRuler(ruler);
   desk.appendChild(ruler);
   drawPending();
@@ -1145,14 +1151,15 @@ addEventListener("pointercancel", e=>{
 });
 function drawRuler(cv){
   if(!cv) return;
-  const ctx=cv.getContext("2d"); ctx.fillStyle="#12100c"; ctx.fillRect(0,0,cv.width,cv.height);
+  const d=Number(cv.dataset.dpr)||1, cw=cv.width/d, chh=cv.height/d;
+  const ctx=cv.getContext("2d"); ctx.setTransform(d,0,0,d,0,0); ctx.fillStyle="#12100c"; ctx.fillRect(0,0,cw,chh);
   const spb=beatSec();
   ctx.fillStyle="#5a5044";
-  for(let t=0;t<=VIEW;t+=spb) ctx.fillRect(Math.round(t*PPS),cv.height-4,1,4);
+  for(let t=0;t<=VIEW;t+=spb) ctx.fillRect(Math.round(t*PPS),chh-4,1,4);
   ctx.font="800 11px monospace";
   for(let i=0;i<=VIEW;i+=2){
     const x=i*PPS;
-    ctx.fillStyle="#ffe066"; ctx.fillRect(x,cv.height-9,1,9);
+    ctx.fillStyle="#ffe066"; ctx.fillRect(x,chh-9,1,9);
     ctx.fillStyle="#f4ecdf"; ctx.fillText(i+"s", x+4, 12);
   }
 }
@@ -2214,6 +2221,90 @@ buildPiano(); wirePiano();
 
 addEventListener("resize", ()=>{ if($("desk")) render(); });
 
+
+/* ---- timeline resize / collapse ---- */
+(function(){
+  const body=document.body, handle=$("tlHandle"), btn=$("tlToggle"), desk=$("desk");
+  if(!handle||!desk) return;
+  const KEY_H="muzik.tlHeight", KEY_C="muzik.tlCollapsed", MIN=72, COLL=24, KEYS_MIN=150;
+  let h=Number(localStorage.getItem(KEY_H))||0, collapsed=localStorage.getItem(KEY_C)==="1";
+  function maxH(){
+    const cs=getComputedStyle(body), pad=parseFloat(cs.paddingTop)||0;
+    const hud=document.querySelector(".hud"), hdr=document.querySelector("header");
+    return Math.max(MIN, innerHeight-pad-handle.offsetHeight-(hud?hud.offsetHeight:0)-(hdr?hdr.offsetHeight:0)-KEYS_MIN);
+  }
+  let rT=0;
+  function redraw(){ cancelAnimationFrame(rT); rT=requestAnimationFrame(()=>{ try{ render(); }catch(_){} }); }
+  function apply(save){
+    if(collapsed){ body.style.setProperty("--tlh", COLL+"px"); body.classList.add("tl-collapsed"); desk.scrollTop=0; }
+    else { body.classList.remove("tl-collapsed");
+      if(h){ h=Math.round(Math.min(maxH(), Math.max(MIN,h))); body.style.setProperty("--tlh", h+"px"); }
+      else body.style.removeProperty("--tlh"); }
+    btn.textContent=collapsed?"▼ Show":"▲ Hide";
+    btn.setAttribute("aria-expanded", String(!collapsed));
+    if(save){ try{ if(h) localStorage.setItem(KEY_H,String(h)); localStorage.setItem(KEY_C,collapsed?"1":"0"); }catch(_){} }
+    redraw();
+  }
+  function toggle(){ collapsed=!collapsed; apply(true); }
+  btn.addEventListener("click", e=>{ e.stopPropagation(); toggle(); });
+  btn.addEventListener("pointerdown", e=>e.stopPropagation());
+  handle.addEventListener("dblclick", e=>{ if(e.target===btn) return; toggle(); });
+  let drag=null;
+  handle.addEventListener("pointerdown", e=>{
+    if(e.target===btn) return;
+    e.preventDefault();
+    drag={y:e.clientY, h0:collapsed?COLL:desk.getBoundingClientRect().height, moved:false, id:e.pointerId};
+    try{ handle.setPointerCapture(e.pointerId); }catch(_){}
+    handle.classList.add("dragging");
+  });
+  handle.addEventListener("pointermove", e=>{
+    if(!drag) return;
+    const dy=e.clientY-drag.y;
+    if(!drag.moved && Math.abs(dy)<4) return;
+    drag.moved=true;
+    const nh=drag.h0+dy;
+    if(nh<MIN-30){ if(!collapsed){ collapsed=true; apply(false); } return; }
+    collapsed=false; h=Math.max(MIN, nh); apply(false);
+  });
+  function end(){ if(!drag) return; const m=drag.moved; drag=null; handle.classList.remove("dragging"); if(m) apply(true); }
+  handle.addEventListener("pointerup", end); handle.addEventListener("pointercancel", end);
+  handle.addEventListener("keydown", e=>{
+    if(e.key==="ArrowUp"||e.key==="ArrowDown"){ e.preventDefault(); collapsed=false; h=(h||desk.getBoundingClientRect().height)+(e.key==="ArrowDown"?24:-24); apply(true); }
+  });
+  handle.tabIndex=0;
+  addEventListener("resize", ()=>apply(false));
+  window.muzikTimeline={ set(px){ h=px; collapsed=false; apply(true); }, collapse(c){ collapsed=!!c; apply(true); } };
+  apply(false);
+})();
+
+/* ---- cursor tracer ---- */
+(function(){
+  const cv=$("tracer"); if(!cv) return;
+  const mq=matchMedia("(prefers-reduced-motion: reduce)");
+  const ctx=cv.getContext("2d"), N=8, pts=[];
+  let raf=0, last=0, W=0, H=0;
+  function size(){ const d=devicePixelRatio||1; W=innerWidth; H=innerHeight; cv.width=Math.round(W*d); cv.height=Math.round(H*d); ctx.setTransform(d,0,0,d,0,0); }
+  size(); addEventListener("resize", size);
+  function frame(now){
+    raf=0;
+    ctx.clearRect(0,0,W,H);
+    const idle=now-last, fade=Math.max(0, 1-idle/450);
+    if(fade<=0||!pts.length){ pts.length=0; return; }
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i], k=(i+1)/pts.length, a=0.38*k*fade, r=3+6*k;
+      ctx.fillStyle="rgba(255,224,102,"+a.toFixed(3)+")";
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,6.2832); ctx.fill();
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  addEventListener("pointermove", e=>{
+    if(mq.matches||e.pointerType==="touch") return;
+    pts.push({x:e.clientX,y:e.clientY}); if(pts.length>N) pts.shift();
+    last=performance.now();
+    if(!raf) raf=requestAnimationFrame(frame);
+  }, {passive:true});
+  mq.addEventListener&&mq.addEventListener("change", ()=>{ pts.length=0; ctx.clearRect(0,0,W,H); });
+})();
 </script>
 </body>
 </html>
