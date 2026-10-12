@@ -163,8 +163,18 @@ body.tl-collapsed .desk { overflow:hidden; }
   display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
 }
 .head.pend .meta { color:#ffe066; }
-/* big stylus-dot cursor everywhere (poor-eyesight friendly) */
+/* big stylus-dot cursor everywhere (poor-eyesight friendly); context cursors below override it */
 html, body, *, *::before, *::after { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%23ffe066' stroke='%23000' stroke-width='3'/><circle cx='16' cy='16' r='14.5' fill='none' stroke='%23fff' stroke-width='1.2'/><circle cx='16' cy='16' r='2.5' fill='%23000'/></svg>") 16 16, crosshair !important; }
+/* context cursors: same yellow/black style, higher specificity so they beat the global !important */
+html body .seam, html body .seam *:not(.tl-toggle) { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M18 2 L28 13 H22 V23 H28 L18 34 L8 23 H14 V13 H8 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 18 18, row-resize !important; }
+html body .seam.dragging, html body .seam.dragging * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M8 16 c0-3 5-3 5 0 c0-3 5-3 5 0 c0-3 5-3 5 0 c0-3 5-3 5 0 V24 c0 6 -4 10 -10 10 h-2 c-5 0 -8 -4 -8 -9 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/><path d='M13 16 V21 M18 16 V21 M23 16 V21' stroke='%23000' stroke-width='2'/></svg>") 18 20, grabbing !important; }
+html body .card.editing .clip, html body .card.editing .clip * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M10 20 V11 a2.5 2.5 0 0 1 5 0 V18 V7 a2.5 2.5 0 0 1 5 0 V18 V8 a2.5 2.5 0 0 1 5 0 V19 V12 a2.5 2.5 0 0 1 5 0 V23 c0 7 -4 11 -10 11 h-2 c-4 0 -7 -2 -9 -6 l-4 -8 a2.5 2.5 0 0 1 4 -2.5 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 18 18, grab !important; }
+html body .card.editing .clip .handle, html body .card.editing .clip .handle * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M2 18 L13 8 V14 H23 V8 L34 18 L23 28 V22 H13 V28 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 18 18, ew-resize !important; }
+html body.clip-dragging, html body.clip-dragging * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M8 16 c0-3 5-3 5 0 c0-3 5-3 5 0 c0-3 5-3 5 0 c0-3 5-3 5 0 V24 c0 6 -4 10 -10 10 h-2 c-5 0 -8 -4 -8 -9 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/><path d='M13 16 V21 M18 16 V21 M23 16 V21' stroke='%23000' stroke-width='2'/></svg>") 18 20, grabbing !important; }
+html body.clip-trimming, html body.clip-trimming * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M2 18 L13 8 V14 H23 V8 L34 18 L23 28 V22 H13 V28 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 18 18, ew-resize !important; }
+html body .card:not(.editing):not(.pending) .lane-fit, html body .card:not(.editing):not(.pending) .lane-fit * { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M13 4 a3 3 0 0 1 6 0 V15 c1-2 6-2 6 1 c1-2 6-1 6 2 V25 c0 6-4 9-9 9 h-3 c-4 0-6-2-8-5 l-6-8 a3 3 0 0 1 5-3 l3 3 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 16 2, pointer !important; }
+html body input[type=text], html body input:not([type]), html body input[type=search], html body input[type=number], html body textarea { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><path d='M11 3 H25 V8 H21 V28 H25 V33 H11 V28 H15 V8 H11 Z' fill='%23ffe066' stroke='%23000' stroke-width='3' stroke-linejoin='round'/></svg>") 18 18, text !important; }
+
 
 /* compact controls + piano */
 header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
@@ -189,6 +199,8 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
 .pad .what { font-size:11px; }
 .piano-wrap { display:flex; gap:3px; align-items:stretch; height:clamp(64px,13vh,100px); min-width:0; }
 .piano-wrap .oct { flex:0 0 30px; width:30px; min-height:0; padding:0; font-size:16px; font-weight:900; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.piano-wrap .pmode { flex:0 0 46px; width:46px; font-size:11px; writing-mode:horizontal-tb; background:#ffe066; color:#111; border:2px solid #000; }
+.piano-wrap .pmode.voice { background:#2a241c; color:#ffe066; border-color:#ffe066; }
 .piano-wrap .oct small { font-size:11px; font-weight:700; }
 #piano { position:relative; flex:1 1 auto; min-width:0; touch-action:none; background:#000; border-radius:6px; overflow:hidden; contain:layout paint; }
 #piano .pk { position:absolute; top:0; padding:0; margin:0; border-radius:0 0 5px 5px; transform:none !important; touch-action:none; box-sizing:border-box; display:flex; align-items:flex-end; justify-content:center; }
@@ -242,6 +254,7 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
   <div class="piano-wrap">
     <button type="button" class="oct" id="octDn" title="Piano down an octave">‹<small id="octLo">C3</small></button>
     <div id="piano" aria-label="Piano keyboard"></div>
+    <button type="button" class="oct pmode" id="pianoMode" title="Piano keys sound: real piano or the selected synth voice">Piano</button>
     <button type="button" class="oct" id="octUp" title="Piano up an octave">›<small id="octHi">B4</small></button>
   </div>
   <div class="bar">
@@ -786,7 +799,7 @@ addEventListener("touchend",()=>{ if(!touchSlide) return; touchSlide=false; if(f
 addEventListener("touchcancel",()=>{ if(!touchSlide) return; touchSlide=false; if(finger) fingerUp(); });
 function seqPush(type,midi,extra){
   const now=performance.now();
-  if(!seq.events.length||now-seq.last>SESSION_GAP){ seq={t0:now,last:now,events:[]}; resetWave(); }
+  if(!seq.events.length||(now-seq.last>SESSION_GAP&&type!=="off"&&!(typeof pianoLive!=="undefined"&&pianoLive.size&&extra&&extra.pv))){ seq={t0:now,last:now,events:[]}; resetWave(); }
   const ev={dt:now-seq.t0,type,midi};
   if(extra) Object.assign(ev, extra);
   seq.events.push(ev); seq.last=now; if(!finger) render(); paintToneButton();
@@ -870,7 +883,7 @@ function pendingClips(){
   if(!ons.length) return [];
   const t0=ons[0].dt, now=seq.t0?performance.now()-seq.t0:0;
   return ons.map((on,i)=>{
-    const off=evs.find(e=>e.type==="off"&&e.dt>on.dt);
+    const off=on.pv?evs.find(e=>e.type==="off"&&e.pv&&e.id===on.id):evs.find(e=>e.type==="off"&&!e.pv&&e.dt>on.dt);
     const next=ons[i+1];
     const endDt=off?off.dt:(next?next.dt:Math.max(on.dt+80, now));
     return {name:noteName(on.midi),start:Math.max(0,(on.dt-t0)/1000),dur:Math.max(0.08,(endDt-on.dt)/1000)};
@@ -915,7 +928,7 @@ function geomFor(tr, start, dur){
   return clipGeom(start, dur);
 }
 function drawPending(){
-  const card=document.createElement("div"); card.className="card";
+  const card=document.createElement("div"); card.className="card pending";
   const h=document.createElement("div"); h.className="head pend";
   const meta=document.createElement("span"); meta.className="meta";
   meta.textContent=queueCount()?("Queue · "+queueCount()):"Queue";
@@ -1096,6 +1109,7 @@ function render(){
         const startDrag=(e,mode)=>{
           e.preventDefault(); e.stopPropagation();
           drag={mode, clip:c, track:tr, ox:e.clientX, ostart:c.start, odur:c.dur, el, pid:e.pointerId, moved:false, pps:box.pps, origin:box.origin};
+          document.body.classList.add(mode==="move"?"clip-dragging":"clip-trimming");
           try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(err){}
         };
         el.addEventListener("pointerdown", e=>{ if(e.target.classList.contains("handle")) return; startDrag(e,"move"); });
@@ -1141,13 +1155,13 @@ addEventListener("pointermove", e=>{
 }, {passive:false});
 addEventListener("pointerup", e=>{
   if(!drag||e.pointerId!==drag.pid) return;
-  drag=null;
+  drag=null; document.body.classList.remove("clip-dragging","clip-trimming");
   render();
   if(playing) reschedule();
 });
 addEventListener("pointercancel", e=>{
   if(!drag||e.pointerId!==drag.pid) return;
-  drag=null; render();
+  drag=null; document.body.classList.remove("clip-dragging","clip-trimming"); render();
 });
 function drawRuler(cv){
   if(!cv) return;
@@ -1306,6 +1320,7 @@ function scheduleFrom(t0){
     const played=scheduleTrackEvents(tr, t0);
     tr.clips.forEach(c=>{
       if(c.kind==="audio"){ scheduleAudio(c, tr, t0); return; }
+      if(c.kind==="piano"){ if(!played) schedulePianoClip(c, tr, t0); return; }
       if(played && (c.kind==="drum"||c.kind==="glide"||(c.points&&c.points.length))) return;
       if(c.kind==="drum"){ scheduleDrum(c, tr, t0); return; }
       if(c.kind==="glide"||(c.points&&c.points.length)){ scheduleGlide(c, tr, t0); return; }
@@ -1421,6 +1436,10 @@ function clipsFromSeq(){
   const gt=glideTime();
   evs.forEach(e=>{
     const sec=Math.max(0,(e.dt-origin)/1000);
+    if(e.pv){
+      if(e.type==="on"){ const off=evs.find(x=>x.type==="off"&&x.pv&&x.id===e.id); clips.push({name:noteName(e.midi),kind:"piano",midi:e.midi,freq:hz(e.midi),start:sec,dur:off?Math.max(0.08,(off.dt-e.dt)/1000):0.5,loop:false,points:[{t:0,m:e.midi,from:hz(e.midi),glide:0}]}); }
+      return;
+    }
     if(e.type==="on"){
       if(cur) clips.push(cur);
       cur={name:noteName(e.midi),kind:"glide",midi:e.midi,freq:hz(e.midi),start:sec,dur:0.12,glide:e.glide||gt,loop:false,points:[{t:0,m:e.midi,from:e.from||hz(e.midi),glide:0}]};
@@ -1843,6 +1862,14 @@ function scheduleEvents(events, songTime, shift){
   events.forEach(e=>{
     const at=(shift||0)+e.dt/1000;
     if(at>=SONG) return;
+    if(e.pv){
+      if(e.type!=="on") return;
+      const t=base+(at-(songTime||0)); if(t<ac.currentTime-0.02) return;
+      const off=events.find(x=>x.type==="off"&&x.pv&&x.id===e.id);
+      const offAt=(off?(shift||0)+off.dt/1000:at+0.5);
+      const v=pianoNote(e.midi, t, toneBus||filter, e.v||1); v.release(base+(offAt-(songTime||0)));
+      clipPlayers.push(v.player); return;
+    }
     if(e.type==="on"){
       if(cur) gestures.push(cur);
       cur={at, midi:e.midi, from:e.from, slides:[], off:null};
@@ -2161,6 +2188,69 @@ try{
 }catch(e){}
 
 buildKeys(); buildTones(); render(); showNote(lastHit);
+// ---- piano voice (pure Web Audio, polyphonic) ----
+let pianoModeVal=(()=>{ try{ return localStorage.getItem("piano-mode")==="voice"?"voice":"piano"; }catch(_){ return "piano"; } })();
+const PV_MAX=16, pianoLive=new Map(); let pvVoices=[], pvId=0, hammerBuf=null;
+function pianoNote(m, when, dest, velo){
+  const t=Math.max(when, ac.currentTime), f=Math.max(20,hz(m)), rel=261.63/f;
+  const amp=0.22*(velo||1)*Math.min(1.5,Math.max(0.6,Math.pow(rel,0.18)));
+  const tau=Math.max(0.25, Math.min(2.2, 1.1*Math.pow(rel,0.5)));   // decay time constant: low notes ring longer
+  const out=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.Q.value=0.7;
+  out.gain.setValueAtTime(0.0001,t); out.gain.linearRampToValueAtTime(amp,t+0.005);
+  out.gain.setTargetAtTime(amp*0.6,t+0.005,0.06);             // fast initial drop after strike
+  out.gain.setTargetAtTime(0.00001,t+0.12,tau);                // natural exponential decay while held
+  const b0=Math.min(16000,f*10+2200), b1=Math.min(8000,f*2.2+250);
+  lp.frequency.setValueAtTime(b0,t); lp.frequency.setTargetAtTime(b1,t+0.01,tau*0.45);  // brightness closes
+  lp.connect(out); out.connect(dest);
+  const oscs=[], B=0.00035, amps=[1,0.55,0.32,0.22,0.13,0.08];
+  amps.forEach((a,i)=>{
+    const n=i+1, pf=f*n*Math.sqrt(1+B*n*n); if(pf>ac.sampleRate*0.45) return;
+    const o=ac.createOscillator(); o.type="sine"; o.frequency.value=pf; if(n===1) o.detune.value=1.5;
+    const g=ac.createGain(); g.gain.setValueAtTime(a,t); g.gain.setTargetAtTime(a*0.25,t+0.01,tau/(0.6+n*0.5));
+    o.connect(g); g.connect(lp); o.start(t); oscs.push(o);
+  });
+  if(!hammerBuf){ hammerBuf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.05),ac.sampleRate); const d=hammerBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(d.length*0.18)); }
+  const hs=ac.createBufferSource(); hs.buffer=hammerBuf; const hb=ac.createBiquadFilter(); hb.type="bandpass"; hb.frequency.value=Math.min(9000,f*3+800); hb.Q.value=1.2;
+  const hg=ac.createGain(); hg.gain.value=amp*0.9; hs.connect(hb); hb.connect(hg); hg.connect(out); hs.start(t); oscs.push(hs);
+  let endAt=t+tau*9+0.3; oscs.forEach(o=>{ try{ o.stop(endAt); }catch(_){} });
+  const v={midi:m, t, out, released:false,
+    release(at, fast){
+      if(v.released) return; v.released=true;
+      const r=Math.max(at==null?ac.currentTime:at, ac.currentTime), d=fast?0.012:0.05;   // ~0.2s damper (tau 0.05 -> -40dB in ~0.23s)
+      try{ if(out.gain.cancelAndHoldAtTime) out.gain.cancelAndHoldAtTime(r); else { out.gain.cancelScheduledValues(r); out.gain.setValueAtTime(Math.max(0.00001,out.gain.value),r); } }catch(_){}
+      out.gain.setTargetAtTime(0,r,d);
+      endAt=Math.min(endAt,r+d*8); oscs.forEach(o=>{ try{ o.stop(endAt); }catch(_){} });
+      setTimeout(()=>{ try{ out.disconnect(); }catch(_){} }, Math.max(0,(endAt-ac.currentTime)*1000+200));
+    }};
+  v.player={g:out, o:{stop(){ oscs.forEach(o=>{ try{ o.stop(); }catch(_){} }); }, disconnect(){}}};
+  return v;
+}
+function pianoMarkHeld(){ const on=new Set([...pianoLive.values()].map(x=>x.v.midi)); document.querySelectorAll("#piano .pk").forEach(k=>k.classList.toggle("down",on.has(Number(k.dataset.m)))); }
+function pianoTick(){ if(pianoLive.size){ refreshPending(); requestAnimationFrame(pianoTick); } }
+function pianoDown(m, key){
+  audio(); if(ac.state==="suspended") ac.resume();
+  if(pianoLive.has(key)) pianoUp(key);
+  pvVoices=pvVoices.filter(v=>!v.released||v.t>ac.currentTime-3);
+  const active=pvVoices.filter(v=>!v.released);
+  if(active.length>=PV_MAX){ const old=active[0]; old.release(null,true); for(const [k,x] of pianoLive) if(x.v===old){ pianoLive.delete(k); seqPush("off",old.midi,{pv:1,id:x.id}); } }
+  stopNoise();
+  document.querySelectorAll("[data-drum].hot,[data-noise].hot").forEach(b=>b.classList.remove("hot"));
+  const v=pianoNote(m, ac.currentTime, filter, 1); pvVoices.push(v);
+  const id=++pvId; pianoLive.set(key,{v,id});
+  lastMidi=lastHit=m; lastInput="note"; markLast(m); showNote(m);
+  seqPush("on",m,{pv:1,id,from:hz(m)}); pianoMarkHeld(); paintToneButton();
+  if(pianoLive.size===1) requestAnimationFrame(pianoTick);
+}
+function pianoUp(key){
+  const x=pianoLive.get(key); if(!x) return; pianoLive.delete(key);
+  x.v.release(); seqPush("off",x.v.midi,{pv:1,id:x.id}); pianoMarkHeld();
+  if(!pianoLive.size) render();
+}
+function schedulePianoClip(c, tr, t0){
+  const one=st=>{ const en=st+c.dur; if(st<t0-0.01||st>=SONG) return; const when=ac.currentTime+(st-t0); const v=pianoNote(c.midi||60, when, toneBus||filter, 1); v.release(ac.currentTime+(en-t0)); clipPlayers.push(v.player); };
+  if(tr.loop) eachLoop(tr, at=>one(c.start+at)); else one(c.start);
+}
+function paintPianoMode(){ const b=$("pianoMode"); if(!b) return; b.textContent=pianoModeVal==="piano"?"Piano":"Voice"; b.classList.toggle("voice",pianoModeVal!=="piano"); b.setAttribute("aria-pressed",String(pianoModeVal==="piano")); }
 // ---- piano keyboard ----
 let pianoBase=innerWidth<560?60:48; const pianoPtrs=new Map();
 const PIANO_KEYS="awsedftgyhujkolp;'";
@@ -2190,15 +2280,19 @@ function wirePiano(){
   box.addEventListener("pointerdown",e=>{
     const m=pianoKeyAt(e.clientX,e.clientY); if(m==null) return;
     e.preventDefault(); try{ box.setPointerCapture(e.pointerId); }catch(err){}
-    pianoPtrs.set(e.pointerId,m); pianoPress(m,e);
+    pianoPtrs.set(e.pointerId,m);
+    if(pianoModeVal==="piano"){ setKeyRoot(m); pianoDown(m,"p"+e.pointerId); } else pianoPress(m,e);
   });
   box.addEventListener("pointermove",e=>{
     if(!pianoPtrs.has(e.pointerId)) return;
     const m=pianoKeyAt(e.clientX,e.clientY); if(m==null||m===pianoPtrs.get(e.pointerId)) return;
-    pianoPtrs.set(e.pointerId,m); if(finger) try{ slideTo(m,e); }catch(err){}
+    pianoPtrs.set(e.pointerId,m);
+    if(pianoModeVal==="piano"){ pianoUp("p"+e.pointerId); pianoDown(m,"p"+e.pointerId); return; }
+    if(finger) try{ slideTo(m,e); }catch(err){}
   });
   const up=e=>{
     if(!pianoPtrs.has(e.pointerId)) return; pianoPtrs.delete(e.pointerId);
+    if(pianoLive.has("p"+e.pointerId)){ pianoUp("p"+e.pointerId); return; }
     if(pianoPtrs.size){ const m=[...pianoPtrs.values()].pop(); if(finger) try{ slideTo(m,e); }catch(err){} }
     else if(finger) fingerUp();
   };
@@ -2214,8 +2308,13 @@ function wirePiano(){
     if(k==="z"||k==="x"){ e.preventDefault(); e.stopImmediatePropagation(); shift(k==="z"?-1:1); return; }
     const i=PIANO_KEYS.indexOf(k); if(i<0) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    const m=pianoBase+i; keyHeldMidi.set(k,m); setKeyRoot(m); onNote(m,true);
+    const m=pianoBase+i; setKeyRoot(m);
+    if(pianoModeVal==="piano"){ pianoDown(m,"k"+k); return; }
+    keyHeldMidi.set(k,m); onNote(m,true);
   },true);
+  addEventListener("keyup",e=>{ const k="k"+e.key.toLowerCase(); if(pianoLive.has(k)){ e.stopImmediatePropagation(); pianoUp(k); } },true);
+  addEventListener("blur",()=>{ [...pianoLive.keys()].forEach(pianoUp); });
+  const mb=$("pianoMode"); if(mb){ paintPianoMode(); mb.onclick=()=>{ pianoModeVal=pianoModeVal==="piano"?"voice":"piano"; try{ localStorage.setItem("piano-mode",pianoModeVal); }catch(_){} [...pianoLive.keys()].forEach(pianoUp); paintPianoMode(); }; }
 }
 buildPiano(); wirePiano();
 
