@@ -1,4 +1,5 @@
-/* MUZIK first-run guide + idle nudges. Self-contained; never captures clicks on the app. */
+/* MUZIK first-run guide that works WITHOUT READING: voice, a giant pointing hand, sound, and heavy focus.
+   During a step only the target (and the big ✕) can be clicked; everything else is blocked. */
 (()=>{
 "use strict";
 const LS={get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
@@ -7,77 +8,117 @@ const COLORS=["#ff5a5a","#ff9f40","#ffe066","#7ee07e","#4fd1ff","#7a8cff","#c77d
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const css=`
-#ob-hole{position:fixed;z-index:9000;pointer-events:none;border-radius:14px;transition:all .35s ease;}
-.ob-dim{position:fixed;z-index:8999;pointer-events:none;background:rgba(8,6,4,.62);}
-#ob-hole::after{content:"";position:absolute;inset:-6px;border-radius:18px;border:3px solid #ffe066;box-shadow:0 0 18px 4px rgba(255,224,102,.7);animation:obPulse 1.4s ease-in-out infinite;}
-@keyframes obPulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.03)}}
-#ob-bubble,#ob-welcome{position:fixed;z-index:9002;background:#fffaf0;color:#2a1f10;border:3px solid #ffe066;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.45);font:600 17px/1.4 system-ui,sans-serif;padding:16px 18px 12px;max-width:min(340px,calc(100vw - 24px));box-sizing:border-box;}
-#ob-bubble .t{font-size:20px;font-weight:900;margin:0 0 4px}
-#ob-bubble .p{margin:0 0 10px}
-#ob-bubble .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ob-dots{display:flex;gap:6px}.ob-dots i{width:10px;height:10px;border-radius:50%;background:#e6dcc6;display:block}
-.ob-dots i.on{background:#ffb300;transform:scale(1.25)}.ob-dots i.done{background:#7ec97e}
-.ob-link{background:none;border:0;color:#8a6d3b;font:600 15px system-ui;text-decoration:underline;padding:4px}
-.ob-x{position:absolute;top:6px;right:8px;background:none;border:0;font:900 22px system-ui;color:#8a6d3b;padding:2px 6px}
-#ob-welcome{left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;max-width:min(400px,calc(100vw - 24px));padding:26px 24px 20px}
-#ob-welcome h2{font:900 30px/1.15 system-ui;margin:4px 0 8px}
-#ob-welcome p{margin:0 0 18px}
-.ob-btn{font:900 18px system-ui;border-radius:999px;padding:10px 22px;border:3px solid #2a1f10;background:#ffe066;color:#2a1f10;margin:0 6px}
-.ob-btn.alt{background:#fff;border-color:#c9b98f}
-#ob-scrim{position:fixed;inset:0;z-index:9001;background:rgba(8,6,4,.55)}
-.ob-spark{position:fixed;z-index:9003;pointer-events:none;font:900 22px system-ui;animation:obFly .9s ease-out forwards}
-@keyframes obFly{from{opacity:1;transform:translate(0,0) scale(.6) rotate(0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.2) rotate(var(--r))}}
-.ob-nudge{animation:obNudge 1.6s ease-in-out 3!important;border-radius:10px}
-@keyframes obNudge{0%,100%{box-shadow:0 0 0 0 rgba(255,224,102,0)}50%{box-shadow:0 0 0 5px rgba(255,224,102,.75)}}
-@media (prefers-reduced-motion: reduce){#ob-hole,#ob-hole::after,.ob-nudge{animation:none!important;transition:none!important}.ob-spark{display:none}}
+.ob-dim{position:fixed;z-index:8999;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);pointer-events:auto;cursor:not-allowed}
+#ob-hole{position:fixed;z-index:9000;pointer-events:none;border-radius:16px;transition:all .35s ease}
+#ob-hole::before{content:"";position:absolute;inset:-12px;border-radius:24px;border:10px solid #ffe600;box-shadow:0 0 0 4px #000,0 0 40px 14px rgba(255,230,0,.9),inset 0 0 0 4px #000;animation:obPulse 1.1s ease-in-out infinite}
+@keyframes obPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.05);opacity:1}}
+#ob-hand{position:fixed;z-index:9003;pointer-events:none;font-size:104px;line-height:1;left:0;top:0;filter:drop-shadow(0 0 14px #fff) drop-shadow(0 0 26px #ffe600);transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+#ob-hand span{display:block;animation:obTap 1.2s ease-in-out infinite;transform-origin:20% 0}
+@keyframes obTap{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-26px) scale(1.05)}55%{transform:translateY(6px) scale(.88)}70%{transform:translateY(0) scale(1)}}
+#ob-ripple{position:fixed;z-index:9002;pointer-events:none;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:6px solid #fff;animation:obRip 1.2s ease-out infinite}
+@keyframes obRip{0%,50%{opacity:0;transform:scale(.3)}56%{opacity:1}100%{opacity:0;transform:scale(2.2)}}
+#ob-icon{position:fixed;z-index:9002;pointer-events:none;font-size:84px;line-height:1;filter:drop-shadow(0 0 12px rgba(255,255,255,.8))}
+#ob-dots{position:fixed;z-index:9004;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:16px;pointer-events:none}
+#ob-dots i{width:28px;height:28px;border-radius:50%;background:#555;border:4px solid #fff;display:block}
+#ob-dots i.on{background:#ffe600;transform:scale(1.4);box-shadow:0 0 18px #ffe600}#ob-dots i.done{background:#3ddc5a}
+.ob-big{position:fixed;z-index:9005;width:84px;height:84px;border-radius:50%;border:6px solid #fff;font:900 46px/1 system-ui;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 0 0 4px #000,0 6px 20px rgba(0,0,0,.6)}
+#ob-x{top:14px;right:14px;background:#e02020;color:#fff}
+#ob-spk{top:14px;left:14px;background:#2a7bff;color:#fff;font-size:42px}
+#ob-spk.off{background:#555}
+#ob-scrim{position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#ob-play{position:fixed;z-index:9002;left:50%;top:50%;width:min(300px,70vmin);height:min(300px,70vmin);margin:calc(min(300px,70vmin)/-2) 0 0 calc(min(300px,70vmin)/-2);border-radius:50%;background:#3ddc5a;border:12px solid #fff;color:#fff;font:900 min(150px,35vmin)/1 system-ui;cursor:pointer;box-shadow:0 0 0 6px #000,0 0 60px 20px rgba(61,220,90,.7);animation:obPulse 1.3s ease-in-out infinite;padding:0 0 0 .15em}
+#ob-play .s{position:absolute;right:-6px;top:-6px;font-size:64px;background:#2a7bff;border:5px solid #fff;border-radius:50%;width:96px;height:96px;display:flex;align-items:center;justify-content:center;padding:0}
+#ob-burst{position:fixed;z-index:9002;pointer-events:none;border-radius:50%;width:40px;height:40px;margin:-20px 0 0 -20px;animation:obBurst .7s ease-out forwards}
+@keyframes obBurst{from{opacity:1;transform:scale(.2)}to{opacity:0;transform:scale(9)}}
+.ob-spark{position:fixed;z-index:9006;pointer-events:none;font:900 34px system-ui;animation:obFly 1.3s ease-out forwards}
+@keyframes obFly{from{opacity:1;transform:translate(0,0) scale(.6) rotate(0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(var(--r))}}
+#ob-yay{position:fixed;z-index:9002;left:50%;top:50%;transform:translate(-50%,-50%);font-size:min(200px,45vmin);pointer-events:none;animation:obPulse 1s ease-in-out infinite}
+.ob-nudge{position:relative;z-index:50;animation:obNudge 1s ease-in-out 5!important;border-radius:12px}
+@keyframes obNudge{0%,100%{box-shadow:0 0 0 0 rgba(255,230,0,0)}50%{box-shadow:0 0 0 12px rgba(255,230,0,.95),0 0 40px 10px rgba(255,230,0,.7)}}
+@media (prefers-reduced-motion: reduce){#ob-hole,#ob-hand{transition:none!important}#ob-hand span,#ob-ripple,.ob-nudge,#ob-play,#ob-yay{animation:none!important}#ob-hole::before{animation:none!important;opacity:1}.ob-spark,#ob-burst{display:none}}
 `;
 const st=document.createElement("style"); st.textContent=css; document.head.appendChild(st);
 
+/* ---- voice ---- */
+const speechOK=()=>"speechSynthesis" in window && typeof SpeechSynthesisUtterance!=="undefined";
+const voiceOn=()=>LS.get("muzik.voice")!=="off";
+function say(text){
+  if(!speechOK()||!voiceOn()) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=.9; u.pitch=1.15; u.volume=1; speechSynthesis.speak(u);}catch(e){}
+}
+/* ---- own little synth for chimes / demos (separate from the app's audio) ---- */
+let ac=null;
+function ctx(){ try{ if(!ac){const A=window.AudioContext||window.webkitAudioContext; if(!A) return null; ac=new A();} if(ac.state==="suspended") ac.resume(); return ac;}catch(e){return null;} }
+function tone(f,t0,dur,type,vol){const c=ctx(); if(!c) return; const o=c.createOscillator(), g=c.createGain(), t=c.currentTime+t0;
+  o.type=type||"sine"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.18,t+.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.05);}
+function drum(){const c=ctx(); if(!c) return; const o=c.createOscillator(), g=c.createGain(), t=c.currentTime;
+  o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(45,t+.25); g.gain.setValueAtTime(.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+.3);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+.35);}
+const chime=()=>{tone(784,0,.35,"triangle");tone(1175,.09,.45,"triangle");};
+const softChime=()=>{tone(660,0,.5,"sine",.08);tone(990,.15,.6,"sine",.06);};
+const melody=()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*.14,i===5?.7:.25,"triangle",.16));
+
 const cardCount=()=>document.querySelectorAll("#desk .card:not(.pending)").length;
 const STEPS=[
- {el:()=>$("keys"), t:"Tap a color!", p:"Every color is a note. Tap any square in the rainbow and listen.", on:{down:e=>e.target.closest("#keys .cell")}},
- {el:()=>$("piano"), t:"Tickle the piano", p:"Play 3 keys, any keys. There are no wrong notes here!", need:3, on:{down:e=>e.target.closest("#piano")}},
- {el:()=>document.querySelector(".pad-group.drums")||$("mash"), t:"Boom! Hit a drum", p:"Kick, clap, cowbell... pick your favorite thump.", on:{down:e=>e.target.closest("[data-drum]")}},
- {el:()=>document.querySelector(".side")||$("tones"), t:"Change your voice", p:"Tap a different sound chip. Try a bell, a flute, or some fuzzy noise!", on:{down:e=>{const b=e.target.closest("#tones button,[data-noise]"); return b&&!b.classList.contains("on");}}},
- {el:()=>$("rec"), t:"Let's record!", p:"Press REC, sing or play something, then press REC again to stop.", recStep:true},
- {el:()=>$("previewTake"), t:"Hear yourself", p:"Press HEAR to play back what you just made.", on:{click:e=>e.target.closest("#previewTake")}},
- {el:()=>$("captureLast"), t:"Keep it!", p:"Press KEEP and watch your music land on the timeline.", keepStep:true},
+ {el:()=>$("keys"), aim:()=>document.querySelector("#keys .home-row .cell")||document.querySelector("#keys .cell"), icon:"🎨", say:"Tap a color.", demo:()=>tone(523,0,.5,"triangle"), on:{down:e=>e.target.closest("#keys .cell")}},
+ {el:()=>$("piano"), icon:"🎹", say:"Now play the piano. Three keys.", demo:()=>[392,494,587].forEach((f,i)=>tone(f,i*.22,.4,"triangle")), need:3, on:{down:e=>e.target.closest("#piano")}},
+ {el:()=>document.querySelector(".pad-group.drums")||$("mash"), aim:()=>document.querySelector('[data-drum="kick"]'), icon:"🥁", say:"Hit a drum.", demo:drum, on:{down:e=>e.target.closest("[data-drum]")}},
+ {el:()=>document.querySelector(".side")||$("tones"), aim:()=>document.querySelector("#tones button:not(.on)"), icon:"🎤", say:"Pick a new sound.", demo:()=>tone(880,0,.4,"square",.07), on:{down:e=>{const b=e.target.closest("#tones button,[data-noise]"); return b&&!b.classList.contains("on");}}},
+ {el:()=>$("rec"), icon:"🔴", say:"Press the red button to record.", sayOn:"Make some sound! Then press red again to stop.", recStep:true},
+ {el:()=>$("previewTake"), icon:"👂", say:"Now listen. Press the speaker.", on:{click:e=>e.target.closest("#previewTake")}},
+ {el:()=>$("captureLast"), icon:"✅", say:"Press the check to keep it.", keepStep:true},
 ];
-let step=-1, count=0, recOn=false, hole, bubble, active=false, keepBase=0, keepTimer=0;
+const CHEERS=["Yay!","Nice!","Wow!","Great!","Yay!","Lovely!","Yay!"];
+let step=-1, count=0, recOn=false, active=false, keepBase=0, keepTimer=0, repeatT=0, handPos=null;
 
 function el(tag,attrs,html){const e=document.createElement(tag);Object.assign(e,attrs||{});if(html!=null)e.innerHTML=html;return e;}
-function clean(){["ob-hole","ob-bubble","ob-welcome","ob-scrim"].forEach(id=>{const e=$(id);if(e)e.remove();});document.querySelectorAll(".ob-dim").forEach(d=>d.remove());hole=bubble=null;}
-function end(done){active=false;step=-1;clearInterval(keepTimer);clean();LS.set("muzik.onboarded","1");if(done)celebrate();}
+function clean(keepChrome){["ob-hole","ob-hand","ob-ripple","ob-icon","ob-dots","ob-scrim","ob-play","ob-yay"].concat(keepChrome?[]:["ob-x","ob-spk"]).forEach(id=>{const e=$(id);if(e)e.remove();});
+  document.querySelectorAll(".ob-dim").forEach(d=>d.remove()); clearTimeout(repeatT);}
+function end(done){active=false;step=-1;clearInterval(keepTimer);clean(true);LS.set("muzik.onboarded","1");if(done)celebrate();else{clean();try{speechSynthesis.cancel();}catch(e){}}}
+function chrome(){
+  if(!$("ob-x")){const x=el("button",{id:"ob-x",className:"ob-big",type:"button"},"✕"); x.setAttribute("aria-label","Close tour"); x.onclick=e=>{e.stopPropagation();end(false);}; document.body.appendChild(x);}
+  if(!$("ob-spk")){const s=el("button",{id:"ob-spk",className:"ob-big",type:"button"}); s.onclick=e=>{e.stopPropagation();LS.set("muzik.voice",voiceOn()?"off":"on");syncSpk();if(voiceOn())say(step>=0?STEPS[step].say:"Voice on.");else try{speechSynthesis.cancel();}catch(_){}}; document.body.appendChild(s);}
+  syncSpk();
+}
+function syncSpk(){const s=$("ob-spk"); if(!s) return; s.textContent=voiceOn()?"🔊":"🔇"; s.classList.toggle("off",!voiceOn()); s.setAttribute("aria-label",voiceOn()?"Voice on":"Voice off"); s.style.display=speechOK()?"":"none";}
 
 function welcome(){
-  clean(); active=true;
+  clean(); active=true; step=-1;
   document.body.appendChild(el("div",{id:"ob-scrim"}));
-  const w=el("div",{id:"ob-welcome"},`<div style="font-size:34px">🎵🥁🎹</div><h2>Let's make some noise!</h2><p>Want a quick tour? It's 7 tiny steps, and you'll make a song by the end.</p><button class="ob-btn" id="obStart">Start</button><button class="ob-btn alt" id="obSkip">Skip</button>`);
-  w.setAttribute("role","dialog"); w.setAttribute("aria-label","Welcome to MUZIK");
-  document.body.appendChild(w);
-  $("obStart").onclick=e=>{e.stopPropagation();go(0);};
-  $("obSkip").onclick=e=>{e.stopPropagation();end(false);};
-  $("obStart").focus();
+  const p=el("button",{id:"ob-play",type:"button"},`▶<span class="s">🔊</span>`); p.setAttribute("aria-label","Play the tour");
+  p.onclick=e=>{e.stopPropagation();chime();go(0);};
+  document.body.appendChild(p); chrome(); p.focus();
+  const cue=()=>{say("Hi! Let's make music. Tap the big button.");softChime();};
+  cue(); const again=()=>{repeatT=setTimeout(()=>{if(active&&step===-1&&$("ob-play")){cue();again();}},6000);}; again();
 }
 function go(i){
-  clean(); step=i; count=0; recOn=false; active=true;
+  clean(true); step=i; count=0; recOn=false; active=true;
   if(i>=STEPS.length){end(true);return;}
   const s=STEPS[i]; if(s.keepStep) keepBase=cardCount();
   const target=s.el(); if(target&&target.scrollIntoView) target.scrollIntoView({block:"nearest"});
-  hole=el("div",{id:"ob-hole"}); document.body.appendChild(hole);
-  for(let k=0;k<4;k++) document.body.appendChild(el("div",{className:"ob-dim"}));
-  bubble=el("div",{id:"ob-bubble"}); bubble.setAttribute("role","dialog"); bubble.setAttribute("aria-live","polite");
-  const dots=STEPS.map((_,k)=>`<i class="${k<i?"done":k===i?"on":""}"></i>`).join("");
-  bubble.innerHTML=`<button class="ob-x" aria-label="Close tour">×</button><div class="t">${s.t}</div><div class="p">${s.p}</div><div class="row"><div class="ob-dots" aria-label="Step ${i+1} of ${STEPS.length}">${dots}</div><button class="ob-link">skip step</button></div>`;
-  document.body.appendChild(bubble);
-  bubble.querySelector(".ob-x").onclick=e=>{e.stopPropagation();end(false);};
-  bubble.querySelector(".ob-link").onclick=e=>{e.stopPropagation();go(step+1);};
-  place();
+  document.body.appendChild(el("div",{id:"ob-hole"}));
+  for(let k=0;k<4;k++){const d=el("div",{className:"ob-dim"}); ["pointerdown","mousedown","touchstart","click","pointerup","mouseup","dblclick","contextmenu"].forEach(t=>d.addEventListener(t,blockEv,true)); document.body.appendChild(d);}
+  document.body.appendChild(el("div",{id:"ob-icon"},s.icon));
+  document.body.appendChild(el("div",{id:"ob-ripple"}));
+  const h=el("div",{id:"ob-hand"},"<span>👆</span>"); h.setAttribute("aria-hidden","true"); document.body.appendChild(h);
+  if(handPos&&!reduced()) h.style.transform=`translate(${handPos[0]}px,${handPos[1]}px)`; else h.style.transform=`translate(${innerWidth/2-50}px,${innerHeight/2}px)`;
+  const dots=el("div",{id:"ob-dots"},STEPS.map((_,k)=>`<i class="${k<i?"done":k===i?"on":""}"></i>`).join("")); dots.setAttribute("aria-label",`Step ${i+1} of ${STEPS.length}`); document.body.appendChild(dots);
+  chrome(); requestAnimationFrame(place);
+  cue(true);
+}
+function blockEv(e){ e.stopPropagation(); e.preventDefault(); if(e.type==="pointerdown"&&step>=0){ softChime(); cue(false); } }
+function cue(first){
+  clearTimeout(repeatT); if(step<0) return; const s=STEPS[step];
+  say(recOn?s.sayOn:s.say);
+  if(first&&s.demo) setTimeout(()=>{ if(step>=0&&STEPS[step]===s) try{s.demo();}catch(e){} },700);
+  const h=$("ob-hand"); if(h&&!reduced()){h.firstElementChild.style.animation="none"; void h.offsetWidth; h.firstElementChild.style.animation="";}
+  const my=step; repeatT=setTimeout(()=>{ if(active&&step===my) cue(false); },6000);
 }
 function place(){
-  if(step<0||!hole||!bubble) return;
-  const t=STEPS[step].el(); if(!t) return;
-  const r=t.getBoundingClientRect(), pad=6, W=innerWidth, H=innerHeight;
+  if(step<0) return; const hole=$("ob-hole"); if(!hole) return;
+  const s=STEPS[step], t=s.el(); if(!t) return;
+  const r=t.getBoundingClientRect(), pad=8, W=innerWidth, H=innerHeight;
   const x=Math.max(2,r.left-pad), y=Math.max(2,r.top-pad), x2=Math.min(W-2,r.right+pad), y2=Math.min(H-2,r.bottom+pad);
   Object.assign(hole.style,{left:x+"px",top:y+"px",width:Math.max(0,x2-x)+"px",height:Math.max(0,y2-y)+"px"});
   const d=document.querySelectorAll(".ob-dim"), px=v=>v+"px";
@@ -87,83 +128,92 @@ function place(){
     Object.assign(d[2].style,{left:"0",top:px(y),width:px(x),height:px(y2-y)});
     Object.assign(d[3].style,{left:px(x2),top:px(y),right:"0",height:px(y2-y)});
   }
-  const bw=bubble.offsetWidth, bh=bubble.offsetHeight, m=12;
-  let by = (H-y2>=bh+m*2) ? y2+m : (y>=bh+m*2) ? y-bh-m : Math.max(m,H-bh-m);
-  let bx = Math.min(Math.max(m,(x+x2)/2-bw/2), W-bw-m);
-  // big target covering most of the screen: tuck bubble into a corner it overlaps least
-  bubble.style.left=bx+"px"; bubble.style.top=Math.max(m,Math.min(by,H-bh-m))+"px";
+  const a=(s.aim&&s.aim())||t, ar=a.getBoundingClientRect();
+  const ax=Math.min(Math.max(ar.left+ar.width/2,10),W-10), ay=Math.min(Math.max(ar.top+ar.height/2,10),H-10);
+  const hx=Math.min(ax-28,W-110), hy=Math.min(ay-12,H-115); // fingertip ~ top-left of glyph
+  const h=$("ob-hand"); if(h){h.style.transform=`translate(${hx}px,${hy}px)`; handPos=[hx,hy];}
+  const rp=$("ob-ripple"); if(rp){rp.style.left=ax+"px"; rp.style.top=ay+"px";}
+  const ic=$("ob-icon"); if(ic){ if(y>100){ic.style.left=Math.min(Math.max(8,(x+x2)/2-42),W-100)+"px"; ic.style.top=(y-98)+"px";} else if(W-x2>110){ic.style.left=(x2+16)+"px"; ic.style.top=Math.max(100,y)+"px";} else {ic.style.left=Math.max(8,x-110)+"px"; ic.style.top=Math.max(100,y)+"px";} }
 }
 function sparkle(x,y,n){
   if(reduced()) return;
-  const glyphs=["✦","♪","♫","★","●"];
+  const glyphs=["✦","♪","♫","★","●","🎉"];
   for(let k=0;k<n;k++){
     const s=el("div",{className:"ob-spark"},glyphs[k%glyphs.length]);
-    const a=Math.random()*Math.PI*2, d=40+Math.random()*(n>20?260:60);
-    s.style.cssText=`left:${x}px;top:${y}px;color:${COLORS[k%COLORS.length]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${(Math.random()*360)|0}deg`;
-    document.body.appendChild(s); setTimeout(()=>s.remove(),1000);
+    const a=Math.random()*Math.PI*2, dd=60+Math.random()*(n>20?380:120);
+    s.style.cssText=`left:${x}px;top:${y}px;color:${COLORS[k%COLORS.length]};--dx:${Math.cos(a)*dd}px;--dy:${Math.sin(a)*dd}px;--r:${(Math.random()*360)|0}deg`;
+    document.body.appendChild(s); setTimeout(()=>s.remove(),1400);
   }
 }
+function burst(x,y,c){ if(reduced()) return; const b=el("div",{id:"ob-burst"}); b.style.cssText=`left:${x}px;top:${y}px;background:radial-gradient(circle,${c},transparent 70%)`; document.body.appendChild(b); setTimeout(()=>b.remove(),750); }
 function advance(){
-  const r=hole&&hole.getBoundingClientRect();
-  if(r) sparkle(r.left+r.width/2,r.top+r.height/2,10);
-  const cheers=["Yes!","Lovely!","Ooh, nice!","You're a natural!","Bravo!","So good!","Wow!"];
-  if(bubble){bubble.querySelector(".t").textContent=cheers[step%cheers.length]+" ✨";bubble.querySelector(".p").textContent="";}
-  const next=step+1; step=-2; setTimeout(()=>go(next), reduced()?150:650);
+  const hole=$("ob-hole"), r=hole&&hole.getBoundingClientRect();
+  if(r){ const cx=r.left+r.width/2, cy=r.top+r.height/2; burst(cx,cy,COLORS[step%COLORS.length]); sparkle(cx,cy,16); }
+  chime(); say(CHEERS[step%CHEERS.length]);
+  const ic=$("ob-icon"); if(ic) ic.textContent="⭐";
+  const next=step+1; step=-2; clearTimeout(repeatT); setTimeout(()=>go(next), reduced()?700:1100);
 }
 function celebrate(){
-  clean();
+  clean(true); chrome();
   document.body.appendChild(el("div",{id:"ob-scrim"}));
-  const w=el("div",{id:"ob-welcome"},`<div style="font-size:34px">🎉🎶🎉</div><h2>You made a song!</h2><p>That's the whole flow: play, record, hear, keep. Now go wild! (Replay this anytime from MORE → Show me around.)</p><button class="ob-btn" id="obDone">Let's play!</button>`);
-  w.setAttribute("role","dialog"); document.body.appendChild(w);
-  const close=()=>clean(); $("obDone").onclick=e=>{e.stopPropagation();close();};
-  sparkle(innerWidth/2,innerHeight/2,48); setTimeout(()=>sparkle(innerWidth/3,innerHeight/3,24),250); setTimeout(()=>sparkle(innerWidth*2/3,innerHeight/3,24),450);
+  const y=el("div",{id:"ob-yay"},"🎉"); y.setAttribute("aria-label","You made a song!"); document.body.appendChild(y);
+  melody(); say("Yay! You made a song!");
+  sparkle(innerWidth/2,innerHeight/2,50); setTimeout(()=>sparkle(innerWidth/3,innerHeight/3,30),300); setTimeout(()=>sparkle(innerWidth*2/3,innerHeight/3,30),550);
+  const close=()=>{clean();}; $("ob-scrim").onclick=close; y.style.pointerEvents="none";
+  setTimeout(close,4500);
 }
 
-// Real-event detection (capture phase so app handlers that stopPropagation can't hide it; never prevents anything).
+// Real-event detection (capture phase; blocked areas never reach here because dims stop them first on their own target).
 addEventListener("pointerdown",e=>{
   touched(e);
   if(!active||step<0) return; const s=STEPS[step];
-  if(s.on&&s.on.down&&s.on.down(e)){ if(++count>=(s.need||1)) advance(); }
+  if(s.on&&s.on.down&&s.on.down(e)){ if(++count>=(s.need||1)) advance(); else { tone(660+count*120,0,.15,"triangle",.08); cue(false);} }
 },true);
 addEventListener("click",e=>{
   if(!active||step<0) return; const s=STEPS[step];
   if(s.on&&s.on.click&&s.on.click(e)) advance();
   if(s.recStep&&e.target.closest("#rec")){
-    if(!recOn){recOn=true;bubble.querySelector(".p").textContent="Recording! Make some sound... then press REC again to stop.";}
+    if(!recOn){recOn=true; tone(880,0,.2,"triangle",.1); cue(false);}
     else advance();
   }
   if(s.keepStep&&e.target.closest("#captureLast")){
     clearInterval(keepTimer); let n=0;
     keepTimer=setInterval(()=>{ n++; if(step<0){clearInterval(keepTimer);return;}
-      if(cardCount()>keepBase){clearInterval(keepTimer);const d=$("desk").lastElementChild;if(d)sparkle(d.getBoundingClientRect().left+60,d.getBoundingClientRect().top+14,14);advance();}
-      else if(n>12){clearInterval(keepTimer);bubble.querySelector(".p").textContent="Hmm, nothing to keep yet. Play a few notes, then press KEEP again!";}
+      if(cardCount()>keepBase){clearInterval(keepTimer);const d=$("desk").lastElementChild;if(d){const b=d.getBoundingClientRect();sparkle(b.left+60,b.top+14,14);}advance();}
+      else if(n>12){clearInterval(keepTimer); say("Play a few notes, then press the check again."); softChime();}
     },100);
   }
 },true);
-addEventListener("keydown",e=>{ if(e.key==="Escape"&&active) end(false); idleReset(); },true);
+addEventListener("keydown",e=>{ if(e.key==="Escape"&&(active||$("ob-yay"))){ end(false); return; } idleReset(); },true);
 addEventListener("resize",place); addEventListener("scroll",place,true);
-setInterval(()=>{ if(active&&step>=0) place(); },500); // follow layout changes (timeline resize etc.)
+setInterval(()=>{ if(active&&step>=0) place(); },500);
 
-// ---- idle nudges (first 3 sessions, opt-out) ----
+// ---- idle nudges (first 3 sessions, Hints toggle): soft chime + giant hand ----
 const sessions=(Number(LS.get("muzik.sessions"))||0)+1; LS.set("muzik.sessions",String(sessions));
 const nudgesOn=()=>LS.get("muzik.nudges")!=="off" && sessions<=3;
-const NUDGE=[["keys","#keys .cell"],["piano","#piano"],["drum","[data-drum]"],["tones","#tones button,[data-noise]"],["rec","#rec"],["play","#play"]];
-const used=new Set(); let idleT=0, nudged=null;
+const NUDGE=[["keys","#keys .cell","🎨","Tap a color."],["piano","#piano","🎹","Play the piano."],["drum","[data-drum]","🥁","Hit a drum."],["tones","#tones button,[data-noise]","🎤","Pick a new sound."],["rec","#rec","🔴","Press red to record."],["play","#play","▶","Press play."]];
+const used=new Set(); let idleT=0, nudged=null, nHand=null;
 function touched(e){ NUDGE.forEach(([k,sel])=>{ if(e.target.closest&&e.target.closest(sel)) used.add(k); }); idleReset(); }
-function idleReset(){ clearTimeout(idleT); if(nudged){nudged.classList.remove("ob-nudge");nudged=null;} if(nudgesOn()) idleT=setTimeout(nudge,8000); }
+function unNudge(){ if(nudged){nudged.classList.remove("ob-nudge");nudged=null;} if(nHand){nHand.remove();nHand=null;} }
+function idleReset(){ clearTimeout(idleT); unNudge(); if(nudgesOn()) idleT=setTimeout(nudge,8000); }
 function nudge(){
   if(active||!nudgesOn()||document.hidden) return idleReset();
   const pick=NUDGE.find(([k])=>!used.has(k)); if(!pick) return;
   const target=document.querySelector(pick[1]==="#keys .cell"?"#keys .home-row .cell":pick[1].split(",")[0]);
-  if(!target) return; used.add(pick[0]); // each thing is nudged at most once
+  if(!target) return; used.add(pick[0]);
   nudged=target; target.classList.add("ob-nudge");
-  setTimeout(()=>{ if(nudged===target){target.classList.remove("ob-nudge");nudged=null;} idleReset(); },5000);
+  const r=target.getBoundingClientRect();
+  nHand=el("div",{id:"ob-hand"},"<span>👆</span>"); nHand.setAttribute("aria-hidden","true"); nHand.style.transition="none";
+  nHand.style.transform=`translate(${Math.min(r.left+r.width/2-28,innerWidth-110)}px,${Math.min(r.top+r.height/2,innerHeight-115)}px)`;
+  document.body.appendChild(nHand);
+  softChime(); say(pick[3]);
+  setTimeout(()=>{ if(nudged===target) unNudge(); idleReset(); },5000);
 }
-function syncNudgeBtn(){ const b=$("obNudges"); if(b) b.firstElementChild.textContent="Hints: "+(LS.get("muzik.nudges")==="off"?"off":"on"); }
+function syncNudgeBtn(){ const b=$("obNudges"); if(b) b.firstElementChild.textContent=(LS.get("muzik.nudges")==="off"?"💡 Hints: off":"💡 Hints: on"); }
 
 function init(){
-  const r=$("obReplay"); if(r) r.onclick=e=>{e.stopPropagation(); const m=$("setupMenu"); if(m) m.classList.remove("open"); welcome();};
-  const n=$("obNudges"); if(n) n.onclick=e=>{e.stopPropagation(); LS.set("muzik.nudges",LS.get("muzik.nudges")==="off"?"on":"off"); syncNudgeBtn(); idleReset();};
+  const r=$("obReplay"); if(r){ r.onclick=e=>{e.stopPropagation(); const m=$("setupMenu"); if(m) m.classList.remove("open"); welcome();}; r.firstElementChild.textContent="👆 Show me around"; }
+  const n=$("obNudges"); if(n) n.onclick=e=>{e.stopPropagation(); LS.set("muzik.nudges",LS.get("muzik.nudges")==="off"?"on":"off"); syncNudgeBtn(); if(LS.get("muzik.nudges")!=="off") softChime(); idleReset();};
   syncNudgeBtn();
   window.muzikTour={start:welcome,go,end};
   if(!LS.get("muzik.onboarded")) setTimeout(welcome,400); else idleReset();
