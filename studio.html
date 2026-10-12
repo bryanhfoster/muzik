@@ -268,6 +268,41 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
   .hud .take .pad .ic { display:none; }
   #meter { width:44px; }
 }
+
+/* piano follows grid */
+#piano{overflow:hidden}
+.octFlash{animation:octF .8s}
+@keyframes octF{0%,40%{color:#111;background:#ffe066;border-radius:4px;transform:scale(1.5)}}
+/* friendly transport */
+.hud .pad .what{display:none!important}
+.pad .badge{position:absolute;top:3px;right:3px;min-width:30px;height:30px;border-radius:15px;background:#ff3b6b;color:#fff;font:900 17px/30px system-ui;padding:0 6px;box-shadow:0 2px 6px #0007}
+#captureLast{position:relative}
+.hud .pad .ic{font-size:30px}
+.take{position:relative}
+#takeHint{display:none}
+.take.idle #previewTake,.take.idle #captureLast{display:none}
+.take.idle #takeHint{display:flex;align-items:center;gap:8px;font:900 22px system-ui;color:#ffe9a8;padding:6px 14px;border-radius:18px;background:#ffffff14;animation:thPulse 1.6s ease-in-out infinite;white-space:nowrap}
+#takeHint .bn{display:inline-block;font-size:30px;animation:thBounce 1s ease-in-out infinite}
+@keyframes thPulse{50%{transform:scale(1.06);background:#ffffff26}}
+@keyframes thBounce{50%{transform:translateY(-6px)}}
+.take.popin #previewTake,.take.popin #captureLast{animation:popIn .45s cubic-bezier(.3,1.8,.5,1)}
+@keyframes popIn{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+#rec.hot{background:#e0203a!important;animation:recPulse 1s ease-in-out infinite}
+@keyframes recPulse{50%{box-shadow:0 0 0 10px #e0203a55}}
+#clrOv{position:fixed;inset:0;z-index:9999;pointer-events:none;--p:0}
+#clrOv .wave{position:absolute;inset:0;background:radial-gradient(circle at var(--x) var(--y),#ff2a3dd0 0,#ff2a3d99 calc(var(--p)*150vmax),transparent calc(var(--p)*150vmax + 2px))}
+#clrOv .mid{position:absolute;left:50%;top:50%;width:min(60vmin,320px);height:min(60vmin,320px);transform:translate(-50%,-50%)}
+#clrOv svg{position:absolute;inset:0;transform:rotate(-90deg)}
+#clrOv circle{fill:none;stroke-width:10}#clrOv .bg{stroke:#ffffff40}#clrOv .fg{stroke:#fff;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7}
+#clrOv .can{position:absolute;inset:0;display:grid;place-items:center;font-size:min(26vmin,140px);transform:scale(calc(.8 + var(--p)*.3))}
+#clrOv .num{position:absolute;left:0;right:0;bottom:-18%;text-align:center;font:900 min(16vmin,90px) system-ui;color:#fff;text-shadow:0 3px 10px #000a}
+#clrOv.cancel{transition:transform .25s,opacity .25s;transform:scale(.2);opacity:0}
+#clrOv.done{animation:clrFlash .7s forwards}
+@keyframes clrFlash{0%{background:#fff}100%{background:#fff0;opacity:0}}
+#clrHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;display:flex;flex-direction:column;align-items:center;font:900 min(20vmin,110px) system-ui;color:#fff;text-shadow:0 4px 14px #000;animation:hintPulse .6s ease-in-out 3}
+#clrHint .hd{font-size:min(28vmin,150px);animation:thBounce .6s infinite}
+@keyframes hintPulse{50%{transform:translate(-50%,-50%) scale(1.12)}}
+@media (prefers-reduced-motion:reduce){#takeHint,#takeHint .bn,#clrHint,#clrHint .hd{animation:none!important}}
 </style>
 </head>
 <body>
@@ -315,9 +350,10 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
   <div class="bar">
     <button id="play" class="pad p-play" title="Play every track"><span class="ic">▶</span><span class="lb">Play</span></button>
     <div class="take" title="Record, listen back, then save it as a track">
-      <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="ic">●</span><span class="lb">Rec</span><span class="what">mic</span></button>
-      <button id="previewTake" class="pad p-hear is-wait" aria-disabled="true" title="Play back what you just did"><span class="ic">🔊</span><span class="lb">Hear</span><span class="what">empty</span></button>
-      <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="ic">✓</span><span class="lb">Keep</span><span class="what">—</span></button>
+      <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="ic">●</span><span class="lb">Rec</span></button>
+      <button id="previewTake" class="pad p-hear is-wait" aria-disabled="true" title="Play back what you just did"><span class="ic">🔊</span><span class="lb">Hear</span></button>
+      <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="ic">✓</span><span class="lb">Keep</span><span class="badge"></span></button>
+      <div id="takeHint" aria-hidden="true"><span class="bn">🎹</span> Press a key!</div>
     </div>
     <button id="clearTake" class="pad p-clr big-clear" title="Clear the queue. Hold to reset."><span class="charge"></span><span class="ic">✕</span><span class="lb">Clear</span></button>
     <button id="padsBtn" type="button" hidden>Pads</button>
@@ -681,10 +717,13 @@ function paintToneButton(){
     const short={white:"White",pink:"Pink",brown:"Brown",static:"Static"}[lastNoise.kind]||"Noise";
     label=lastNoise.pure?short:short+" "+noteName(lastNoise.midi);
     title="Keep "+(lastNoise.pure?"pure ":"")+lastNoise.kind; ready=true;
-  } else if(Number.isFinite(lastHit)){
+  } else if(playedAny && Number.isFinite(lastHit)){
     label="hold "+noteName(lastHit); title="Keep "+noteName(lastHit)+" as a held tone"; ready=true;
   }
-  if(what) what.textContent=label;
+  const bd=tone.querySelector(".badge"); if(bd){ bd.textContent=hits.length>=2?("×"+hits.length):""; bd.hidden=!bd.textContent; }
+  const tk=tone.closest(".take"), wasIdle=tk&&tk.classList.contains("idle");
+  if(tk){ tk.classList.toggle("idle", !ready && !$("previewTake").classList.contains("ready-h") && !capturing); }
+  if(tk && wasIdle && ready){ tk.classList.remove("popin"); void tk.offsetWidth; tk.classList.add("popin"); try{ fxChime(); }catch(e){} }
   tone.title=title;
   tone.classList.toggle("ready", ready);
   syncHear();
@@ -696,7 +735,8 @@ function markPicked(el){
   document.querySelectorAll(".cell.last").forEach(n=>n.classList.remove("last"));
   el.classList.add("picked");
 }
-function setKeyRoot(m){keyRoot=lastHit=lastMidi=m; document.querySelectorAll(".picked").forEach(n=>n.classList.remove("picked")); markLast(m); showNote(m);}
+let playedAny=false;
+function setKeyRoot(m){playedAny=true;keyRoot=lastHit=lastMidi=m; document.querySelectorAll(".picked").forEach(n=>n.classList.remove("picked")); markLast(m); showNote(m);}
 function notesNow(){
   const base=Number.isFinite(keyRoot)?keyRoot:60;
   const out=[];
@@ -800,7 +840,7 @@ function bindCell(b,midi){
   b.dataset.m=String(midi); b.style.background=pitchColor(midi);
   if([1,3,6,8,10].includes(((midi%12)+12)%12)) b.classList.add("sharp");
   if(midi===12) b.classList.add("home-c0");
-  b.onmousedown=e=>{ if(touchSlide) return; e.preventDefault(); setKeyRoot(midi); fingerDown(e,midi,true); };
+  b.onmousedown=e=>{ if(touchSlide) return; e.preventDefault(); setKeyRoot(midi); pianoFollow(midi); fingerDown(e,midi,true); };
   b.onmouseenter=e=>{if(finger) slideTo(midi,e);};
 }
 function buildKeys(){
@@ -840,7 +880,7 @@ function wireTouch(box){
     if(m==null) return;
     e.preventDefault();
     touchSlide=true;
-    setKeyRoot(m);
+    setKeyRoot(m); pianoFollow(m);
     fingerDown({clientX:t.clientX,clientY:t.clientY},m,true);
   },{passive:false});
 }
@@ -1095,8 +1135,7 @@ function syncHear(){
   const what=b.querySelector(".what");
   const ready=!!(notes||rec);
   b.classList.toggle("is-wait", !ready); b.setAttribute("aria-disabled", ready?"false":"true");
-  b.hidden=false;
-  if(what) what.textContent=ready?(notes&&rec?"notes + mic":notes?"your notes":"the mic"):"empty";
+  b.hidden=false; b.classList.toggle("ready-h", ready);
 }
 function refreshPending(){ paintKeep(); }
 function render(){
@@ -2006,7 +2045,7 @@ function wipeProject(){
   try{ localStorage.removeItem("studio-project"); }catch(e){}
   location.reload();
 }
-$("clearTake").onclick=()=>{
+$("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
   seq={t0:0,last:0,events:[]};
   clearRecording();
   stopNoise();
@@ -2016,27 +2055,43 @@ $("clearTake").onclick=()=>{
   render();
 };
 (function(){
-  const btn=$("clearTake"); let hold=null;
-  const HOLD=2200;
-  const bar=()=>btn.querySelector(".charge");
-  const label=()=>btn.querySelector(".lb");
+  const btn=$("clearTake"); let hold=null, t0=0, ticks=[], ov=null, raf=0;
+  const HOLD=2200, TAP=280;
+  const voice=()=>{}; /* no spoken voice */
+  const buzz=ms=>{ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} };
+  const mk=(x,y)=>{ kill(); ov=document.createElement("div"); ov.id="clrOv"; ov.style.setProperty("--x",x+"px"); ov.style.setProperty("--y",y+"px");
+    ov.innerHTML='<div class="wave"></div><div class="mid"><div class="can">🗑️</div><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="bg"/><circle cx="60" cy="60" r="52" class="fg"/></svg><div class="num">3</div></div>';
+    document.body.appendChild(ov); };
+  const kill=()=>{ cancelAnimationFrame(raf); if(ov) ov.remove(); ov=null; };
+  const frame=()=>{ if(!ov) return; const p=Math.min(1,(performance.now()-t0)/HOLD);
+    ov.style.setProperty("--p",p); ov.querySelector(".fg").style.strokeDashoffset=(1-p)*326.7;
+    ov.querySelector(".num").textContent=Math.max(1,3-Math.floor(p*3)); if(p<1) raf=requestAnimationFrame(frame); };
   btn.addEventListener("pointerdown",e=>{
-    clearTimeout(hold); try{btn.setPointerCapture(e.pointerId);}catch(err){}
-    const el=bar();
-    if(el){ el.style.transition="none"; el.style.width="0"; void el.offsetWidth; el.style.transition="width "+HOLD+"ms linear"; el.style.width="100%"; }
-    btn.classList.add("arming");
-    if(label()) label().textContent="Hold";
+    clearTimeout(hold); ticks.forEach(clearTimeout); try{btn.setPointerCapture(e.pointerId);}catch(err){}
+    t0=performance.now(); btn.classList.add("arming");
     $("status").textContent="hold to reset";
-    hold=setTimeout(()=>{ if(label()) label().textContent="Reset"; wipeProject(); }, HOLD);
+    const x=e.clientX, y=e.clientY;
+    ticks=[setTimeout(()=>{ mk(x,y); frame(); voice("Clearing everything"); buzz(30); },TAP),
+           setTimeout(()=>buzz(30),TAP+(HOLD-TAP)/3), setTimeout(()=>buzz(30),TAP+2*(HOLD-TAP)/3)];
+    hold=setTimeout(()=>{ hold=null; buzz([60,40,120]); fxWhoosh(); if(ov){ ov.classList.add("done"); } voice("All clear."); setTimeout(wipeProject,700); }, HOLD);
   });
   const disarm=()=>{
+    if(!btn.classList.contains("arming")) return;
+    btn.classList.remove("arming"); ticks.forEach(clearTimeout);
+    if(hold===null){ return; } // completed
     clearTimeout(hold); hold=null;
-    btn.classList.remove("arming");
-    if(label()) label().textContent="Clear";
-    const el=bar(); if(el){ el.style.transition="none"; el.style.width="0"; }
+    if(performance.now()-t0<TAP){ tapHint(); }
+    else { fxPhew(); if(ov){ const o=ov; ov=null; cancelAnimationFrame(raf); o.classList.add("cancel"); setTimeout(()=>o.remove(),300); } }
+    $("status").textContent="";
   };
+  function tapHint(){ const old=$("clrHint"); if(old) old.remove(); const h=document.createElement("div"); h.id="clrHint"; h.innerHTML='<span class="hd">👇</span><b>hold</b>'; document.body.appendChild(h); voice("Hold to clear."); buzz(20); setTimeout(()=>h.remove(),1800); }
   btn.addEventListener("pointerup",disarm); btn.addEventListener("pointercancel",disarm);
 })();
+function fxCtx(){ try{ audio(); return ac; }catch(e){ return null; } }
+function fxTone(f1,f2,dur,type,vol){ const c=fxCtx(); if(!c) return; const o=c.createOscillator(), g=c.createGain(), t=c.currentTime; o.type=type||"sine"; o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.2,t+.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.05); }
+function fxChime(){ fxTone(1047,1050,.35,"sine",.12); setTimeout(()=>fxTone(1568,1570,.4,"sine",.09),90); }
+function fxPhew(){ fxTone(520,260,.35,"sine",.15); }
+function fxWhoosh(){ const c=fxCtx(); if(!c) return; const n=c.sampleRate*.8, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n); const s=c.createBufferSource(); s.buffer=b; const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=1.5; const t=c.currentTime; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(4000,t+.7); const g=c.createGain(); g.gain.value=.5; s.connect(f); f.connect(g); g.connect(c.destination); s.start(); }
 $("rec").onclick=async()=>{
   if(!capturing){
     if(micMuted){ $("status").textContent="muted"; return; }
@@ -2045,14 +2100,14 @@ $("rec").onclick=async()=>{
     capturing=true;
     $("rec").classList.add("hot");
     $("rec").querySelector(".lb").textContent="Stop"; $("rec").querySelector(".ic").textContent="■";
-    $("rec").querySelector(".what").textContent="listening";
+    
     startVoiceRec();
     $("status").textContent="recording";
   } else {
     capturing=false;
     $("rec").classList.remove("hot");
     $("rec").querySelector(".lb").textContent="Rec"; $("rec").querySelector(".ic").textContent="●";
-    $("rec").querySelector(".what").textContent="mic";
+    
     stopVoiceRec();
   }
 };
@@ -2331,6 +2386,19 @@ function buildPiano(){
   $("octHi").textContent="B"+(Math.floor((pianoBase+n-1)/12));
   if(finger) pianoMark(finger.midi);
 }
+function pianoFollow(m){
+  if(!$("piano")) return;
+  const n=pianoSpan(); let base=Math.floor(m/12)*12;
+  while(base+n-1>119 && base>12) base-=12;   // clamp: shift down if range doesn't fit
+  base=Math.max(12,Math.min(96,base));
+  if(base===pianoBase) return;
+  const dir=base>pianoBase?1:-1; pianoBase=base; buildPiano(); pianoAnim(dir);
+}
+function pianoAnim(dir){
+  const box=$("piano"); if(box&&box.animate&&!matchMedia("(prefers-reduced-motion: reduce)").matches)
+    box.animate([{transform:`translateX(${dir*40}%)`,opacity:.3},{transform:"none",opacity:1}],{duration:320,easing:"cubic-bezier(.2,.8,.3,1)"});
+  ["octLo","octHi"].forEach(id=>{ const e=$(id); if(e){ e.classList.remove("octFlash"); void e.offsetWidth; e.classList.add("octFlash"); } });
+}
 function pianoKeyAt(x,y){ const el=document.elementFromPoint(x,y); const k=el&&el.closest&&el.closest("#piano .pk"); return k?Number(k.dataset.m):null; }
 function pianoPress(m,e){ setKeyRoot(m); if(finger&&finger.o&&!finger.dead){ try{ slideTo(m,e); return; }catch(err){} } fingerDown(e,m,true); }
 function wirePiano(){
@@ -2356,7 +2424,7 @@ function wirePiano(){
   };
   box.addEventListener("pointerup",up); box.addEventListener("pointercancel",up);
   box.addEventListener("contextmenu",e=>e.preventDefault());
-  const shift=d=>{ pianoBase=Math.max(12,Math.min(96,pianoBase+d*12)); buildPiano(); };
+  const shift=d=>{ const o=pianoBase; pianoBase=Math.max(12,Math.min(96,pianoBase+d*12)); buildPiano(); if(o!==pianoBase) pianoAnim(d); };
   $("octDn").onclick=()=>shift(-1); $("octUp").onclick=()=>shift(1);
   addEventListener("resize",()=>{ const n=$("piano").children.length; if(n!==pianoSpan()) buildPiano(); });
   addEventListener("keydown",e=>{
