@@ -1,0 +1,1 @@
+import{t as e}from"./index-D_sifjaw.js";var t=e();function n(){return(0,t.jsx)(`iframe`,{className:`studio-frame`,title:`Spectrum`,src:`/studio.html`})}export{n as component};

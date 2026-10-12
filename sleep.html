@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Sleep</title>
+<style>
+:root { --ink:#e6dcc8; --dim:#8a7d68; --gold:#d7b56a; }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; background:#070605; color:var(--ink); font-family:Georgia, "Iowan Old Style", serif;
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
+body { min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:18px 16px 22px; }
+a.back { align-self:flex-start; color:var(--dim); text-decoration:none; font:700 12px ui-monospace, Menlo, monospace; letter-spacing:.12em; text-transform:uppercase; }
+.stage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; width:100%; }
+.orb {
+  width:min(64vw, 280px); height:min(64vw, 280px); border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, #3a3226 0%, #1a150f 55%, #070605 78%);
+  box-shadow:0 0 80px rgba(215,181,106,.18), inset 0 0 40px rgba(0,0,0,.45);
+  transform:scale(.72);
+  transition:transform 5.5s ease-in-out;
+}
+.orb.in { transform:scale(1); }
+.word { font-size:28px; letter-spacing:.04em; min-height:1.2em; }
+.bpm { font:600 14px ui-monospace, Menlo, monospace; color:var(--dim); letter-spacing:.04em; min-height:1.2em; text-align:center; }
+.row { display:flex; gap:8px; width:min(520px, 100%); }
+button, a { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+button {
+  flex:1; min-height:52px; border-radius:16px; border:1px solid #2a241c; background:#120f0c; color:var(--ink);
+  font:600 15px Georgia, serif; cursor:pointer;
+}
+button.on { background:#241c12; color:var(--gold); border-color:#6a5428; box-shadow:inset 0 0 0 1px #6a5428; }
+.fine { display:flex; gap:8px; width:min(520px, 100%); }
+.fine button { min-height:40px; font-size:13px; color:var(--dim); }
+.fine button.on { color:var(--gold); }
+</style>
+</head>
+<body>
+<a class="back" href="/studio.html">Studio</a>
+<div class="stage">
+  <div id="orb" class="orb"></div>
+  <div id="word" class="word">breathe</div>
+  <div id="bpm" class="bpm">Tap your pulse, if you want.</div>
+</div>
+<div class="row">
+  <button type="button" data-bed="pink">Pink</button>
+  <button type="button" data-bed="brown">Brown</button>
+  <button type="button" data-bed="om">Om</button>
+</div>
+<div class="fine">
+  <button type="button" id="pulse">Pulse</button>
+  <button type="button" data-pace="4">Easy</button>
+  <button type="button" data-pace="5.5" class="on">Slow</button>
+  <button type="button" data-pace="7">Slower</button>
+</div>
+<div class="fine">
+  <button type="button" data-timer="0" class="on">Stay</button>
+  <button type="button" data-timer="20">20 min</button>
+  <button type="button" data-timer="45">45 min</button>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+addEventListener("selectstart", e=>e.preventDefault());
+addEventListener("contextmenu", e=>{ if(navigator.maxTouchPoints>0) e.preventDefault(); });
+let ac, master, bufs, beds={}, pace=5.5, inhale=true, timer=null, fade=null;
+function audio(){
+  if(ac) return;
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  master=ac.createGain(); master.gain.value=0.7;
+  master.connect(ac.destination);
+}
+function buffers(){
+  if(bufs) return bufs;
+  audio();
+  const len=ac.sampleRate*2;
+  bufs={};
+  ["pink","brown"].forEach(kind=>{
+    const b=ac.createBuffer(1,len,ac.sampleRate);
+    const d=b.getChannelData(0);
+    if(kind==="brown"){ let x=0; for(let i=0;i<len;i++){ x=(x+0.02*(Math.random()*2-1))*0.98; d[i]=x*3.5; } }
+    else {
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for(let i=0;i<len;i++){
+        const w=Math.random()*2-1;
+        b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759; b2=0.969*b2+w*0.153852;
+        b3=0.8665*b3+w*0.3104856; b4=0.55*b4+w*0.5329522; b5=-0.7616*b5-w*0.016898;
+        d[i]=b0+b1+b2+b3+b4+b5+b6+w*0.5362; b6=w*0.115926;
+      }
+    }
+    let peak=0.0001; for(let i=0;i<len;i++) peak=Math.max(peak, Math.abs(d[i]));
+    const g=0.8/peak; for(let i=0;i<len;i++) d[i]*=g;
+    bufs[kind]=b;
+  });
+  return bufs;
+}
+function loopNoise(kind, amt){
+  const s=ac.createBufferSource(); s.buffer=buffers()[kind]; s.loop=true;
+  const g=ac.createGain(); g.gain.value=amt;
+  s.connect(g); g.connect(master); s.start();
+  return {s,g};
+}
+function startBed(kind){
+  audio(); if(ac.state==="suspended") ac.resume();
+  stopBed(kind);
+  if(kind==="om"){
+    const brown=loopNoise("brown", 0.28);
+    const o=ac.createOscillator(); o.type="sine"; o.frequency.value=55;
+    const g=ac.createGain(); g.gain.value=0.06;
+    o.connect(g); g.connect(master); o.start();
+    beds.om={nodes:[brown.s, o], g:brown.g};
+    return;
+  }
+  const n=loopNoise(kind, kind==="pink"?0.22:0.3);
+  beds[kind]={nodes:[n.s], g:n.g};
+}
+function stopBed(kind){
+  const b=beds[kind]; if(!b) return;
+  delete beds[kind];
+  const now=ac?ac.currentTime:0;
+  try{
+    if(b.g){ b.g.gain.cancelScheduledValues(now); b.g.gain.setTargetAtTime(0.0001, now, 0.15); }
+    b.nodes.forEach(n=>n.stop&&n.stop(now+0.6));
+  }catch(e){}
+}
+document.querySelectorAll("[data-bed]").forEach(btn=>{
+  btn.onclick=()=>{
+    const k=btn.dataset.bed;
+    if(btn.classList.contains("on")){ btn.classList.remove("on"); stopBed(k); return; }
+    btn.classList.add("on"); startBed(k);
+  };
+});
+const orb=$("orb"), word=$("word");
+function breath(){
+  inhale=!inhale;
+  orb.style.transition=`transform ${pace}s ease-in-out`;
+  orb.classList.toggle("in", inhale);
+  word.textContent=inhale?"breathe in":"breathe out";
+  setTimeout(breath, pace*1000);
+}
+orb.classList.add("in"); word.textContent="breathe in";
+setTimeout(breath, pace*1000);
+document.querySelectorAll("[data-pace]").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll("[data-pace]").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    pace=Number(btn.dataset.pace);
+  };
+});
+document.querySelectorAll("[data-timer]").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll("[data-timer]").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    clearTimeout(timer); clearTimeout(fade);
+    const min=Number(btn.dataset.timer);
+    if(!min) return;
+    timer=setTimeout(()=>{
+      audio();
+      const now=ac.currentTime;
+      master.gain.setTargetAtTime(0.0001, now, 4);
+      word.textContent="sleep";
+      fade=setTimeout(()=>{ Object.keys(beds).forEach(stopBed); }, 12000);
+    }, min*60*1000);
+  };
+});
+let taps=[];
+$("pulse").onclick=()=>{
+  const now=performance.now();
+  taps=taps.filter(t=>now-t<12000);
+  taps.push(now);
+  if(taps.length<4){ $("bpm").textContent="Tap each beat. "+taps.length; return; }
+  const dt=(taps[taps.length-1]-taps[0])/(taps.length-1);
+  const bpm=Math.round(60000/dt);
+  $("bpm").textContent=bpm+" beats. The breath stays slow.";
+  $("pulse").classList.add("on");
+};
+</script>
+</body>
+</html>
