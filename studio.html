@@ -18,7 +18,7 @@ button span, .cell .nm { pointer-events:none; }
 .noises button, .drums button, .tones button, .cell, .mash { touch-action:none; }
 .pad, .bar button { touch-action:manipulation; }
 input, textarea { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
-body { display:grid; grid-template-rows:var(--tlh, minmax(96px,1.05fr)) 18px auto minmax(110px,1.45fr) auto; grid-template-areas:"desk" "seam" "hud" "keys" "controls"; height:100dvh; width:100%; padding:max(28px, env(safe-area-inset-top, 0px)) 0 0; }
+body { display:grid; grid-template-rows:auto var(--tlh, minmax(96px,1.05fr)) 18px minmax(110px,1.45fr) auto; grid-template-areas:"hud" "desk" "seam" "keys" "controls"; height:100dvh; width:100%; padding:env(safe-area-inset-top, 0px) 0 0; }
 header {
   grid-area:controls; position:relative; display:flex; flex-direction:column;
   padding:4px 6px max(10px, env(safe-area-inset-bottom, 0px));
@@ -217,6 +217,49 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
   .tones button span, .mash button span { font-size:11px; }
   .piano-wrap { height:clamp(80px,12vh,110px); }
 }
+/* ---- top bar: transport + info (big, obvious state) ---- */
+.hud { flex-wrap:nowrap; gap:6px; min-height:52px; padding:5px 6px; border-bottom:2px solid #000; background:linear-gradient(#2c261e,#14110e); }
+.hud .word { font-size:13px; }
+.hud .bar { flex:1 1 auto; width:auto; gap:5px; min-width:0; }
+.hud .bar .pad, .hud .take .pad { height:42px; min-height:42px; flex-direction:row; gap:6px; padding:0 8px; }
+.hud .pad .ic { font-size:18px; }
+.hud .pad .lb { font-size:14px; font-weight:900; letter-spacing:.04em; }
+.hud .pad .what { font-size:13px; opacity:.9; }
+.hud .take { flex:3 1 0; border-width:2px; }
+.hud .bar #play { flex:0 0 88px; background:#1d3a24; border:2px solid #3dba6a; color:#d7f5c8; }
+.hud .bar #play.p-stop { background:#3dba6a; color:#0c1a10; border-color:#bff5cc; }
+#rec.hot { background:#d42a18 !important; color:#fff !important; animation:recpulse 1s ease-in-out infinite; }
+@keyframes recpulse { 0%,100% { box-shadow:inset 0 0 0 3px #fff, 0 0 0 0 rgba(255,90,69,.9); } 50% { box-shadow:inset 0 0 0 3px #ffb0a6, 0 0 14px 4px rgba(255,90,69,.9); } }
+#previewTake.is-wait { opacity:.38; filter:grayscale(1); cursor:not-allowed; }
+#previewTake:not(.is-wait) { background:#2a5a90; color:#fff; box-shadow:inset 0 0 0 2px #9cc8ff; }
+#captureLast.ready { background:#ffe066; color:#1a1204; box-shadow:inset 0 0 0 2px #fff; }
+#captureLast.ready .what { color:#1a1204; opacity:1; }
+#captureLast:not(.ready) { opacity:.55; }
+.hud .bar .big-clear { flex:0 0 84px; height:42px; min-height:42px; background:#5a1810; border:2px solid #ff5a45; color:#ffd8d0; }
+.hud .big-clear.arming { color:#111; }
+.hud #status { flex:0 1 120px; max-width:120px; font-size:13px; padding:3px 6px; border:1px solid #4a4036; border-radius:6px; background:#0c0a08; }
+.hud #status:empty { display:none; }
+.card.pending.slim { display:flex; align-items:center; gap:6px; padding:1px 0; }
+.card.pending.slim .head.pend { min-height:0; padding:0 4px; background:transparent; width:auto; flex:none; display:block; }
+.card.pending.slim .head .meta { font-size:12px; }
+.card.pending.slim .lane-fit { height:24px; flex:1 1 auto; }
+@media (max-width:1100px){ .hud .corner-meter #meter { display:none; } .hud .bar .big-clear { flex-basis:76px; } }
+@media (max-width:900px){
+  .hud { flex-wrap:wrap; row-gap:4px; }
+  .hud .bar { order:10; flex:1 1 100%; }
+  .hud #status { flex:1 1 60px; max-width:none; }
+  .hud .take .pad { padding:0 4px; gap:4px; }
+}
+@media (max-width:480px){
+  .hud .bar #play { flex:0 0 72px; }
+  .hud .bar .big-clear { flex:0 0 60px; flex-direction:column; gap:2px; }
+  .hud .bar #play { flex-direction:column; gap:2px; }
+  .hud .take .pad .lb { font-size:13px; }
+  .hud .take .pad { flex-direction:column; gap:1px; height:48px; min-height:48px; }
+  .hud .bar .pad, .hud .bar .big-clear { height:48px; min-height:48px; }
+  .hud .take .pad .ic { display:none; }
+  #meter { width:44px; }
+}
 </style>
 </head>
 <body>
@@ -257,20 +300,21 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
     <button type="button" class="oct pmode" id="pianoMode" title="Piano keys sound: real piano or the selected synth voice">Piano</button>
     <button type="button" class="oct" id="octUp" title="Piano up an octave">›<small id="octHi">B4</small></button>
   </div>
-  <div class="bar">
-    <button id="play" class="pad p-play" title="Play every track"><span class="ic">▶</span><span class="lb">Play</span></button>
-    <div class="take" title="Record, listen back, then save it as a track">
-      <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="lb">1 Rec</span><span class="what">mic</span></button>
-      <button id="previewTake" class="pad p-hear is-wait" title="Play back what you just did"><span class="lb">2 Hear</span><span class="what">empty</span></button>
-      <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="lb">3 Keep</span><span class="what">—</span></button>
-    </div>
-    <button id="clearTake" class="pad p-clr big-clear" title="Clear the queue. Hold to reset."><span class="charge"></span><span class="ic">✕</span><span class="lb">Clear</span></button>
-    <button id="padsBtn" type="button" hidden>Pads</button>
-  </div>
   <input id="waveType" type="hidden" value="triangle">
 </header>
 <div class="hud">
   <span class="word">MUZIK</span>
+  <div class="bar">
+    <button id="play" class="pad p-play" title="Play every track"><span class="ic">▶</span><span class="lb">Play</span></button>
+    <div class="take" title="Record, listen back, then save it as a track">
+      <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="ic">●</span><span class="lb">Rec</span><span class="what">mic</span></button>
+      <button id="previewTake" class="pad p-hear is-wait" aria-disabled="true" title="Play back what you just did"><span class="ic">🔊</span><span class="lb">Hear</span><span class="what">empty</span></button>
+      <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="ic">✓</span><span class="lb">Keep</span><span class="what">—</span></button>
+    </div>
+    <button id="clearTake" class="pad p-clr big-clear" title="Clear the queue. Hold to reset."><span class="charge"></span><span class="ic">✕</span><span class="lb">Clear</span></button>
+    <button id="padsBtn" type="button" hidden>Pads</button>
+  </div>
+
   <div class="corner-meter"><span id="liveDot" class="dot"></span><canvas id="meter" width="64" height="16"></canvas></div>
   <div class="readouts">
     <div id="noteHud"><b id="noteName">—</b><small id="hzRead">— Hz</small></div>
@@ -934,6 +978,7 @@ function drawPending(){
   meta.textContent=queueCount()?("Queue · "+queueCount()):"Queue";
   h.appendChild(meta);
   const lane=document.createElement("div"); lane.className="lane-fit";
+  if(queueCount()<=12) card.classList.add("slim");
   const cv=document.createElement("canvas"); cv.className="pend-roll";
   { const d=window.devicePixelRatio||1; cv.dataset.dpr=d; cv.width=Math.round(timeW()*d); cv.height=Math.round(46*d); }
   cv.style.cssText="position:absolute;inset:0;width:100%;height:100%;";
@@ -1036,7 +1081,7 @@ function syncHear(){
   const rec=!!(takeBuf||takeUrl||(voiceCap&&voiceCap.chunks&&voiceCap.chunks.length));
   const what=b.querySelector(".what");
   const ready=!!(notes||rec);
-  b.classList.toggle("is-wait", !ready);
+  b.classList.toggle("is-wait", !ready); b.setAttribute("aria-disabled", ready?"false":"true");
   b.hidden=false;
   if(what) what.textContent=ready?(notes&&rec?"notes + mic":notes?"your notes":"the mic"):"empty";
 }
@@ -1986,14 +2031,14 @@ $("rec").onclick=async()=>{
     if(!ok) return;
     capturing=true;
     $("rec").classList.add("hot");
-    $("rec").querySelector(".lb").textContent="1 Stop";
+    $("rec").querySelector(".lb").textContent="Stop"; $("rec").querySelector(".ic").textContent="■";
     $("rec").querySelector(".what").textContent="listening";
     startVoiceRec();
     $("status").textContent="recording";
   } else {
     capturing=false;
     $("rec").classList.remove("hot");
-    $("rec").querySelector(".lb").textContent="1 Rec";
+    $("rec").querySelector(".lb").textContent="Rec"; $("rec").querySelector(".ic").textContent="●";
     $("rec").querySelector(".what").textContent="mic";
     stopVoiceRec();
   }
