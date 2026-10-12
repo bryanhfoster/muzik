@@ -5,7 +5,7 @@ A music studio app that runs in the browser (formerly SAM-PLE / Sample, titled "
 - Original live URL: https://sam-ple.grok.me/studio.html
 - Exported from the hosted Grok site on 2026-10-12. Original paths were kept.
 
-`studio.html` is self-contained: all of its JS and CSS is inline. The root `index.html` is the Grok app shell, a Vite bundle in `assets/`, and it embeds `/studio.html`. `ball.html`, `playground.html` and `sleep.html` are pages that `studio.html` links to.
+`studio.html` is self-contained: all of its JS and CSS is inline. The root `index.html` is the Grok app shell, a Vite bundle in `assets/`, and it embeds `/studio.html`. `ball.html` and `playground.html` are pages that `studio.html` links to.
 
 External dependency (not vendored): `https://grok.com/grok-app-builder/extensions.js`, which the index.html shell loads.
 

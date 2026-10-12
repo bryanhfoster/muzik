@@ -303,6 +303,60 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
 #clrHint .hd{font-size:min(28vmin,150px);animation:thBounce .6s infinite}
 @keyframes hintPulse{50%{transform:translate(-50%,-50%) scale(1.12)}}
 @media (prefers-reduced-motion:reduce){#takeHint,#takeHint .bn,#clrHint,#clrHint .hd{animation:none!important}}
+/* clean top bar */
+html body .hud{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:68px;padding:6px 10px;--bt:54px;--rad:16px}
+html body .hud .word{font-size:12px;letter-spacing:.14em;flex:none}
+html body .hud .readouts{flex:none}
+html body .hud #noteHud{display:flex;align-items:baseline;gap:5px;min-width:0;height:40px;padding:0 12px;border:2px solid #4a4036;border-radius:20px;background:#1e1a14}
+html body .hud #noteHud b{font-size:24px;line-height:40px}
+html body .hud #noteHud small{font-size:10px;opacity:.6;margin:0}
+html body .hud .corner-meter{flex:none}
+html body .hud .bar{flex:1 1 auto;display:flex;justify-content:center;align-items:center;gap:10px;width:auto;min-width:0}
+html body .hud .take{display:contents}
+html body .hud .bar .pad,html body .hud .take .pad,html body .hud .bar .big-clear{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;flex-direction:column;gap:2px;color:#f4ecdf;position:relative;transition:opacity .25s,filter .25s,transform .2s}
+html body .hud .pad .ic{display:block!important;font-size:24px;line-height:1}
+html body .hud .bar .pad .lb{font-size:8px;font-weight:800;letter-spacing:.06em;opacity:.75}
+html body .hud .bar #play.p-stop{background:#3dba6a;border-color:#bff5cc;color:#0c1a10}
+html body .hud #rec{border-color:#e0203a;color:#ff4a5e}
+html body .hud #rec.hot{background:#e0203a!important;color:#fff;border-color:#ffb0b8}
+html body .hud #previewTake.is-wait,html body .hud .take.idle #captureLast{opacity:.35;filter:grayscale(1);display:flex}
+html body .hud #previewTake:not(.is-wait){background:#2a5a90;border-color:#9cc8ff;color:#fff}
+html body .hud #captureLast.ready{background:#2f7a3c;border-color:#bff5cc;color:#fff}
+html body .hud .take.idle #previewTake,html body .hud .take.idle #captureLast{display:flex}
+html body .hud .bar .big-clear{background:transparent;border-color:#e0203a;color:#ff4a5e}
+html body .hud .pad .badge{top:-8px;right:-8px;min-width:24px;height:24px;border-radius:12px;font:900 13px/24px system-ui;padding:0 5px}
+html body .hud #takeHint{display:none}
+html body .hud .take.idle #takeHint{display:none}
+html body .hud .take.idle #rec::after{content:"🎵";position:absolute;right:-10px;top:-7px;font-size:18px;line-height:1;pointer-events:none;animation:thBounce 1s ease-in-out infinite;z-index:2}
+html body .hud .bar{position:relative}
+html body .hud #status{display:none}
+html body .hud #bpmTap{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#f4ecdf}
+html body .hud #bpmTap b{font-size:22px;font-weight:900;line-height:1;color:#ffe066;letter-spacing:-.02em}
+html body .hud #bpmTap small{font-size:8px;font-weight:800;letter-spacing:.08em;opacity:.7;margin:0;text-transform:lowercase}
+html body .hud .menu-wrap{flex:none}
+html body .hud .menu-wrap #setupBtn{flex:0 0 var(--bt);width:var(--bt);height:var(--bt);min-height:var(--bt);min-width:0;padding:0;border:3px solid #5a4e40;border-radius:var(--rad);background:#2a241c;box-shadow:none;flex-direction:column;gap:2px;color:#f4ecdf}
+html body .hud #setupBtn .ic{display:block!important;font-size:28px;line-height:1;font-weight:900}
+html body .hud #setupBtn .lb{display:none}
+html body .hud .word{order:1}html body .hud .readouts{order:2}html body .hud .corner-meter{order:3}html body .hud .bar{order:4}html body .hud #status{order:5}html body .hud #bpmTap{order:6}html body .hud .menu-wrap{order:7}
+html body .hud .bar #play{flex:0 0 var(--bt);border-color:#3dba6a;color:#7ee07e;background:#1d3a24;flex-direction:column}
+html body .hud .pad .ic{font-family:system-ui,sans-serif;font-weight:900}
+html body .hud .bar .big-clear.pulse{animation:clrPulse .35s ease-out}
+@keyframes clrPulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.14);filter:brightness(1.55)}100%{transform:scale(1);filter:brightness(1)}}
+.card.pending.qflash .lane-fit{overflow:hidden}
+.card.pending.qflash .lane-fit::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;background:linear-gradient(90deg,transparent 0%,#ffe06688 35%,#fff9 50%,#ffe06666 65%,transparent 100%);animation:qWhoosh .38s ease-out forwards}
+@keyframes qWhoosh{0%{transform:translateX(-110%);opacity:.95}100%{transform:translateX(110%);opacity:0}}
+html body .hud .pad .badge{top:-7px;right:-7px;left:auto;min-width:20px;height:20px;padding:0 4px;border-radius:10px;font:900 12px/16px system-ui;border:2px solid #14110e;box-sizing:border-box;letter-spacing:-.02em;white-space:nowrap;z-index:3}
+html body .hud .pad .badge[hidden]{display:none}
+@media (max-width:1100px){html body .hud .corner-meter{display:none}}
+@media (max-width:900px){html body .hud{gap:6px;padding:6px 8px}html body .hud .bar{gap:7px}html body .hud #noteHud small{display:none}}
+@media (max-width:700px){
+ html body .hud{flex-wrap:wrap;row-gap:8px;--bt:54px}
+ html body .hud .word{order:1}html body .hud .readouts{order:2}
+ html body .hud #bpmTap{order:3;margin-left:auto}
+ html body .hud .menu-wrap{order:4}
+ html body .hud .bar{order:5;flex:1 0 100%;justify-content:space-between;gap:4px}
+}
+@media (prefers-reduced-motion:reduce){html body .hud .take.idle #rec::after{animation:none}}
 </style>
 </head>
 <body>
@@ -347,24 +401,23 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
 </header>
 <div class="hud">
   <span class="word">MUZIK</span>
+  <div class="readouts">
+    <div id="noteHud"><b id="noteName">—</b><small id="hzRead">— Hz</small></div>
+  </div>
+  <div class="corner-meter"><span id="liveDot" class="dot"></span><canvas id="meter" width="64" height="16"></canvas></div>
   <div class="bar">
     <button id="play" class="pad p-play" title="Play every track"><span class="ic">▶</span><span class="lb">Play</span></button>
     <div class="take" title="Record, listen back, then save it as a track">
       <button id="rec" class="pad p-live" title="Record the microphone. Tap again to stop."><span class="ic">●</span><span class="lb">Rec</span></button>
       <button id="previewTake" class="pad p-hear is-wait" aria-disabled="true" title="Play back what you just did"><span class="ic">🔊</span><span class="lb">Hear</span></button>
       <button id="captureLast" class="pad" title="Save what you just did as a track"><span class="ic">✓</span><span class="lb">Keep</span><span class="badge"></span></button>
-      <div id="takeHint" aria-hidden="true"><span class="bn">🎹</span> Press a key!</div>
+      <div id="takeHint" aria-hidden="true"><span class="bn">🎵</span></div>
     </div>
     <button id="clearTake" class="pad p-clr big-clear" title="Clear the queue. Hold to reset."><span class="charge"></span><span class="ic">✕</span><span class="lb">Clear</span></button>
     <button id="padsBtn" type="button" hidden>Pads</button>
   </div>
-
-  <div class="corner-meter"><span id="liveDot" class="dot"></span><canvas id="meter" width="64" height="16"></canvas></div>
-  <div class="readouts">
-    <div id="noteHud"><b id="noteName">—</b><small id="hzRead">— Hz</small></div>
-  </div>
   <span id="status"></span>
-  <button type="button" id="bpmTap" title="Tap the beat. The tempo follows."><b id="bpmRead">120</b><small>BPM</small></button>
+  <button type="button" id="bpmTap" title="Tap the beat. The tempo follows."><b id="bpmRead">120</b><small>bpm</small></button>
   <div class="menu-wrap">
     <button id="setupBtn" class="pad" title="Save, load, and setup"><span class="ic">⋯</span><span class="lb">More</span></button>
     <div id="setupMenu" class="menu">
@@ -374,7 +427,6 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
         <button id="loadProj" type="button" title="Load a project"><span>Load</span></button>
         <button id="roomBtn" type="button" title="A 3D room"><span>Room</span></button>
         <button id="ballBtn" type="button" title="The spectrum on a ball"><span>Ball</span></button>
-        <button id="sleepBtn" type="button" title="A quiet screen for sleep"><span>Sleep</span></button>
       </div>
       <div class="menu-row">
         <button id="obReplay" type="button" title="Replay the friendly tour"><span>Show me around</span></button>
@@ -2045,7 +2097,14 @@ function wipeProject(){
   try{ localStorage.removeItem("studio-project"); }catch(e){}
   location.reload();
 }
-$("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
+function flashClear(){
+  const b=$("clearTake");
+  if(b){ b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); setTimeout(()=>b.classList.remove("pulse"),400); }
+  const card=document.querySelector(".card.pending");
+  if(card){ card.classList.remove("qflash"); void card.offsetWidth; card.classList.add("qflash"); setTimeout(()=>card.classList.remove("qflash"),420); }
+  try{ fxTone(880,220,.18,"triangle",.12); }catch(e){}
+}
+$("clearTake").onclick=()=>{
   seq={t0:0,last:0,events:[]};
   clearRecording();
   stopNoise();
@@ -2053,6 +2112,7 @@ $("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
   persist();
   $("status").textContent="cleared";
   render();
+  flashClear();
 };
 (function(){
   const btn=$("clearTake"); let hold=null, t0=0, ticks=[], ov=null, raf=0;
@@ -2080,11 +2140,10 @@ $("clearTake").onclick=()=>{ return; /* tap = hint; hold = reset */
     btn.classList.remove("arming"); ticks.forEach(clearTimeout);
     if(hold===null){ return; } // completed
     clearTimeout(hold); hold=null;
-    if(performance.now()-t0<TAP){ tapHint(); }
+    if(performance.now()-t0<TAP){ /* quick tap: onclick clears queue; no overlay */ }
     else { fxPhew(); if(ov){ const o=ov; ov=null; cancelAnimationFrame(raf); o.classList.add("cancel"); setTimeout(()=>o.remove(),300); } }
     $("status").textContent="";
   };
-  function tapHint(){ const old=$("clrHint"); if(old) old.remove(); const h=document.createElement("div"); h.id="clrHint"; h.innerHTML='<span class="hd">👇</span><b>hold</b>'; document.body.appendChild(h); voice("Hold to clear."); buzz(20); setTimeout(()=>h.remove(),1800); }
   btn.addEventListener("pointerup",disarm); btn.addEventListener("pointercancel",disarm);
 })();
 function fxCtx(){ try{ audio(); return ac; }catch(e){ return null; } }
@@ -2283,7 +2342,6 @@ $("bpm").oninput=paintBpm;
 addEventListener("click",e=>{ if(!e.target.closest(".menu-wrap")) $("setupMenu").classList.remove("open"); });
 $("roomBtn").onclick=()=>{ location.href="/playground.html"; };
 $("ballBtn").onclick=()=>{ location.href="/ball.html"; };
-$("sleepBtn").onclick=()=>{ location.href="/sleep.html"; };
 addEventListener("pointerdown",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); });
 addEventListener("touchstart",()=>{ audio(); if(ac&&ac.state==="suspended") ac.resume(); }, {passive:true});
 
@@ -2451,7 +2509,7 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
 (function(){
   const body=document.body, handle=$("tlHandle"), btn=$("tlToggle"), desk=$("desk");
   if(!handle||!desk) return;
-  const KEY_H="muzik.tlHeight", KEY_C="muzik.tlCollapsed", MIN=72, COLL=24, KEYS_MIN=150;
+  const KEY_H="muzik.tlHeight", KEY_C="muzik.tlCollapsed", MIN=72, COLL=24, KEYS_MIN=150, EMPTY_H=84;
   let h=Number(localStorage.getItem(KEY_H))||0, collapsed=localStorage.getItem(KEY_C)==="1";
   function maxH(){
     const cs=getComputedStyle(body), pad=parseFloat(cs.paddingTop)||0;
@@ -2463,7 +2521,9 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
   function apply(save){
     if(collapsed){ body.style.setProperty("--tlh", COLL+"px"); body.classList.add("tl-collapsed"); desk.scrollTop=0; }
     else { body.classList.remove("tl-collapsed");
-      if(h){ h=Math.round(Math.min(maxH(), Math.max(MIN,h))); body.style.setProperty("--tlh", h+"px"); }
+      const empty=!desk.querySelector(".card:not(.pending)");
+      if(h){ h=Math.round(Math.min(maxH(), Math.max(MIN,h))); body.style.setProperty("--tlh", (empty?Math.min(h,EMPTY_H):h)+"px"); }
+      else if(empty) body.style.setProperty("--tlh", EMPTY_H+"px");
       else body.style.removeProperty("--tlh"); }
     btn.textContent=collapsed?"▼ Show":"▲ Hide";
     btn.setAttribute("aria-expanded", String(!collapsed));
@@ -2499,6 +2559,8 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
   handle.tabIndex=0;
   addEventListener("resize", ()=>apply(false));
   window.muzikTimeline={ set(px){ h=px; collapsed=false; apply(true); }, collapse(c){ collapsed=!!c; apply(true); } };
+  let wasEmpty=!desk.querySelector(".card:not(.pending)");
+  new MutationObserver(()=>{ const e=!desk.querySelector(".card:not(.pending)"); if(e!==wasEmpty){ wasEmpty=e; apply(false); } }).observe(desk,{childList:true,subtree:true});
   apply(false);
 })();
 
