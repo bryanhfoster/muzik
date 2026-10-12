@@ -4,6 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>MUZIK</title>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+<meta name="theme-color" content="#16130f"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MUZIK"/>
 <style>
 :root { --text:#fff8e8; --accent:#ffe066; --rec:#ff5a45; }
 * { box-sizing:border-box; }
@@ -335,6 +343,7 @@ header { padding:3px 6px max(6px, env(safe-area-inset-bottom, 0px)); gap:3px; }
       <div class="menu-row">
         <button id="obReplay" type="button" title="Replay the friendly tour"><span>Show me around</span></button>
         <button id="obNudges" type="button" title="Gentle hints when you pause"><span>Hints: on</span></button>
+        <button id="pwaInstall" type="button" title="Put MUZIK on your home screen"><span>📲 Install app</span></button>
       </div>
       <input id="loadFile" type="file" accept="application/json,.json" hidden>
       <label title="How bright the keyboard tones are. Left is muffled, right is sharp."><span>Bright</span><input id="cut" type="range" min="200" max="8000" value="3200"></label>
@@ -2455,5 +2464,6 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
 })();
 </script>
 <script src="onboarding.js" defer></script>
+<script src="install.js" defer></script>
 </body>
 </html>
