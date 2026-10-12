@@ -104,30 +104,38 @@ sizeBtn.addEventListener("click",()=>{bigBall=!bigBall;sizeBtn.textContent=bigBa
 document.getElementById("clearBtn").addEventListener("click",()=>{if(mode==="bounce"){bars.length=0;balls.length=0;}else{strokes.length=0;}spark(W/2,H/2,root+60,30);});
 
 /* ---------- tilt ---------- */
-let tiltX=0,tiltY=1,tiltAsked=false;
+// Natural tilt: inverted vs. old mapping, ~half sensitivity, dead zone, smoothing, clamp.
+let tiltX=0,tiltY=0,tiltAsked=false,rawTX=0,rawTY=0;const TILT_DZ=0.05,TILT_MAX=0.5;
+function tiltShape(v){const a=Math.abs(v);if(a<TILT_DZ)return 0;return Math.sign(v)*Math.min(TILT_MAX,(a-TILT_DZ)/(1-TILT_DZ));}
+function tiltSmooth(dt){const k=1-Math.exp(-dt*6);tiltX+=(rawTX-tiltX)*k;tiltY+=(rawTY-tiltY)*k;}
 function askTilt(){if(tiltAsked)return;tiltAsked=true;const D=window.DeviceOrientationEvent;
-  const on=()=>addEventListener("deviceorientation",e=>{if(e.gamma==null)return;tiltX=Math.max(-1,Math.min(1,e.gamma/45));tiltY=Math.max(-1,Math.min(1,(e.beta||45)/45));});
+  const on=()=>addEventListener("deviceorientation",e=>{if(e.gamma==null)return;rawTX=tiltShape(-e.gamma/90);rawTY=tiltShape(-((e.beta==null?45:e.beta)-45)/90);});
   if(D&&typeof D.requestPermission==="function"){D.requestPermission().then(s=>{if(s==="granted")on();}).catch(()=>{});}else if(D)on();}
 
+/* ---------- draw tone (sound while drawing) ---------- */
+function drawToneNote(y){const t=1-Math.max(0,Math.min(1,y/H));return degNote(Math.round(t*14),3);}
+function toneStart(p){if(!A.ctx)return;p.tm=drawToneNote(p.y);p.tv=A.start(p.tm,0.12);p.tt=0;}
+function toneMove(p){if(!p.tv)return;const now=performance.now();if(now-p.tt<40)return;const m=drawToneNote(p.y);if(m!==p.tm){p.tm=m;p.tt=now;A.glide(p.tv,m,0.07);}}
+function toneStop(p){if(p.tv){A.release(p.tv,0.18);p.tv=null;}}
 /* ---------- pointers ---------- */
 const ptrs=new Map();
 cv.addEventListener("pointerdown",e=>{e.preventDefault();A.init();try{cv.setPointerCapture(e.pointerId);}catch(_){}
   const p={id:e.pointerId,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:performance.now(),path:[{x:e.clientX,y:e.clientY,t:performance.now()}],moved:0,long:false};
   ptrs.set(e.pointerId,p);
-  if(mode==="tank")tankDown(p);else if(mode==="bounce"){askTilt();bounceDown(p);}else paintDown(p);});
+  if(mode==="tank")tankDown(p);else if(mode==="bounce"){askTilt();bounceDown(p);if(!p.grab)toneStart(p);}else{paintDown(p);toneStart(p);}});
 cv.addEventListener("pointermove",e=>{const p=ptrs.get(e.pointerId);if(!p)return;
   let evs=e.getCoalescedEvents?e.getCoalescedEvents():[];if(!evs.length)evs=[e];
   for(const ev of evs){const dx=ev.clientX-p.x,dy=ev.clientY-p.y;p.moved+=Math.hypot(dx,dy);p.x=ev.clientX;p.y=ev.clientY;p.path.push({x:p.x,y:p.y,t:performance.now()});}
   if(p.path.length>600)p.path.splice(1,p.path.length-600);
-  if(mode==="tank")tankMove(p);else if(mode==="bounce")bounceMove(p);else paintMove(p);});
+  if(mode==="tank")tankMove(p);else if(mode==="bounce")bounceMove(p);else paintMove(p);if(p.cancel)toneStop(p);else toneMove(p);});
 function up(e){const p=ptrs.get(e.pointerId);if(!p)return;ptrs.delete(e.pointerId);endPtr(p,false);}
 cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
-function endPtr(p,abort){if(mode==="tank")tankUp(p);else if(mode==="bounce")bounceUp(p,abort);else paintUp(p,abort);}
+function endPtr(p,abort){toneStop(p);if(mode==="tank")tankUp(p);else if(mode==="bounce")bounceUp(p,abort);else paintUp(p,abort);}
 function checkLong(now){ // long-press still = set key root from X (12 chromatic columns)
   for(const p of ptrs.values()){if(p.long||p.moved>14||now-p.t0<1100)continue;p.long=true;
     const pc=Math.min(11,Math.floor(p.x/W*12));const m=60+pc;root=pc;A.setKey(m);keyFlash=1;
     A.note(m,0.6,0.3);A.note(m+7,0.6,0.18);flash(p.x,p.y,m,Math.max(W,H)*.35);spark(p.x,p.y,m,40);
-    if(mode==="bounce"){p.cancel=true;} if(mode==="paint"){p.cancel=true;}}}
+    if(mode==="bounce"){p.cancel=true;} if(mode==="paint"){p.cancel=true;}toneStop(p);}}
 
 /* ================= 1. TANK ================= */
 const rings=[],wakes=[];let lastCross=0;const crossMemo=new Map();
@@ -171,7 +179,7 @@ function drawTank(dt){
 }
 
 /* ================= 2. BOUNCE ================= */
-const bars=[],balls=[];const BAR_W=22;
+const bars=[],balls=[];const BAR_W=11;
 const DRUMS=["kick","tom","snare","clap","hat"];
 function barNote(x1,y1,x2,y2){const len=Math.hypot(x2-x1,y2-y1),mx=(x1+x2)/2;const i=Math.min(7,Math.floor(mx/W*8));const oct=Math.max(2,Math.min(5,5-Math.floor(len/(Math.max(W,H)*.18))));return degNote(i,oct);}
 function ballAt(x,y){for(let i=balls.length-1;i>=0;i--){const b=balls[i];if(Math.hypot(b.x-x,b.y-y)<b.r+20)return b;}return null;}
@@ -192,7 +200,7 @@ function playHit(bar,ball,x,y){const ac=A.ctx;let when=ac?ac.currentTime:0;
   bar.glow=1;ball.m=bar.m;flash(x,y,bar.m,ball.big?80:50);spark(x,y,bar.m,ball.big?18:10);}
 let nextBeatBase=0;
 function stepBounce(dt){
-  const g=1400,gx=tiltX*g,gy=tiltAsked&&tiltY!==1?Math.max(-1,Math.min(1,tiltY))*g:g,now=performance.now();
+  const g=1400,gx=tiltX*g,gy=g*(1+tiltY),now=performance.now();
   for(let i=balls.length-1;i>=0;i--){const b=balls[i];if(b.held)continue;
     b.vx+=gx*dt;b.vy+=gy*dt;b.vx*=.999;b.x+=b.vx*dt;b.y+=b.vy*dt;
     if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*.8;}if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*.8;}
@@ -204,11 +212,11 @@ function stepBounce(dt){
     if(now-b.born>60000&&Math.hypot(b.vx,b.vy)<5)balls.splice(i,1);}
 }
 function drawBounce(dt){
-  for(let k=0;k<3;k++)stepBounce(Math.min(dt,0.05)/3);
+  tiltSmooth(dt);for(let k=0;k<3;k++)stepBounce(Math.min(dt,0.05)/3);
   cx.fillStyle="#06070f";cx.fillRect(0,0,W,H);
   for(let i=0;i<8;i++){cx.fillStyle=col(degNote(i,4),45,.06);cx.fillRect(W*i/8,0,W/8,H);}
   cx.lineCap="round";cx.globalCompositeOperation="lighter";
-  for(const s of bars){s.glow=Math.max(0,s.glow-dt*2);cx.strokeStyle=col(s.m,55,.35+s.glow*.4);cx.lineWidth=BAR_W*2+s.glow*20;cx.beginPath();cx.moveTo(s.x1,s.y1);cx.lineTo(s.x2,s.y2);cx.stroke();
+  for(const s of bars){s.glow=Math.max(0,s.glow-dt*2);cx.strokeStyle=col(s.m,55,.35+s.glow*.4);cx.lineWidth=BAR_W*2+s.glow*10;cx.beginPath();cx.moveTo(s.x1,s.y1);cx.lineTo(s.x2,s.y2);cx.stroke();
     cx.strokeStyle=col(s.m,65+s.glow*20,1);cx.lineWidth=BAR_W;cx.stroke();}
   for(const p of ptrs.values())if(!p.grab&&!p.cancel&&Math.hypot(p.x-p.x0,p.y-p.y0)>20){const m=barNote(p.x0,p.y0,p.x,p.y);cx.strokeStyle=col(m,60,.6);cx.lineWidth=BAR_W;cx.beginPath();cx.moveTo(p.x0,p.y0);cx.lineTo(p.x,p.y);cx.stroke();}
   for(const b of balls){const g=cx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r*2.4);g.addColorStop(0,"rgba(255,255,255,.95)");g.addColorStop(.35,col(b.m,70,.9));g.addColorStop(1,col(b.m,50,0));cx.fillStyle=g;cx.beginPath();cx.arc(b.x,b.y,b.r*2.4,0,6.283);cx.fill();}
@@ -248,9 +256,9 @@ function drawPaint(dt){
     if(!s.live){if(s.drum)on=s.steps.includes(cur);else on=cur>=s.s0&&cur<=s.s1;}
     if(on)s.glow=1;else s.glow=Math.max(0,(s.glow||0)-dt*2.5);
     const c=s.drum?["#ffe066","#ff8a7a","#9ee7f5"][s.lane]:null,m=s.m!=null?s.m:snap(root+60);
-    cx.strokeStyle=c||col(m,60,.35+s.glow*.4);cx.lineWidth=(s.pts.length<4?44:26)+s.glow*16;cx.globalAlpha=c?.4+s.glow*.4:1;
+    cx.strokeStyle=c||col(m,60,.35+s.glow*.4);cx.lineWidth=(s.pts.length<4?22:13)+s.glow*8;cx.globalAlpha=c?.4+s.glow*.4:1;
     cx.beginPath();s.pts.forEach((q,i)=>i?cx.lineTo(q.x,q.y):cx.moveTo(q.x,q.y));if(s.pts.length===1)cx.lineTo(s.pts[0].x+.1,s.pts[0].y);cx.stroke();
-    cx.globalAlpha=1;cx.strokeStyle=c||col(m,75+s.glow*15,1);cx.lineWidth=s.pts.length<4?22:12;cx.stroke();
+    cx.globalAlpha=1;cx.strokeStyle=c||col(m,75+s.glow*15,1);cx.lineWidth=s.pts.length<4?11:6;cx.stroke();
     if(on&&!RM.matches&&Math.random()<.3){const q=s.pts[0];spark(Math.max(q.x,px),q.y,m,1);}}
   const g=cx.createLinearGradient(px-40,0,px+40,0);g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.5,"rgba(255,255,240,.55)");g.addColorStop(1,"rgba(255,255,255,0)");
   cx.fillStyle=g;cx.fillRect(px-40,G.top,80,H-G.top);
