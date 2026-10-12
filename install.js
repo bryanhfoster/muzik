@@ -59,7 +59,7 @@ window.addEventListener("appinstalled",()=>{ close(false); LS.set("muzik.install
 window.muzikInstall={show:()=>show(true),close};
 function init(){
   const b=document.getElementById("pwaInstall");
-  if(b){ b.onclick=e=>{ e.stopPropagation(); const m=document.getElementById("setupMenu"); if(m) m.classList.remove("open"); show(true); }; if(standalone()) b.style.display="none"; }
+  if(b){ b.onclick=e=>{ e.stopPropagation(); if(window.muzikCloseMenu) window.muzikCloseMenu(); else { const m=document.getElementById("setupMenu"); if(m) m.classList.remove("open"); } show(true); }; if(standalone()) b.style.display="none"; }
   // after the first fun moment: onboarding celebration ("🎉" gone) or ~45s of play
   setTimeout(auto,45000);
   const mo=new MutationObserver(()=>{ if(document.getElementById("ob-yay")){ mo.disconnect(); setTimeout(auto,4500);} });
