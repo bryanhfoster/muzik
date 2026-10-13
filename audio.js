@@ -75,3 +75,66 @@ function drum(name,when,vol){if(!init())return;when=when||ac.currentTime;const k
   else {toneHit(when,540,540,0.16,0.25*k);}}
 window.MuzikAudio={init,start,glide,release,note,drum,hz,bpm,keyRoot,setKey,wave,TONES,useSound,getSound,setSound,get liveCount(){return live.length;},get ctx(){return ac;}};
 })();
+/* MUZIK shared audio devices: chosen mic (input) + speaker (output), saved in localStorage "muzik-audio-devices".
+   Output is applied to EVERY AudioContext on the page automatically: AudioContext.setSinkId when supported,
+   otherwise connections to ctx.destination are re-routed through an <audio> element with setSinkId. */
+(function(){
+const KEY="muzik-audio-devices";
+let pref={input:"",output:""};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&typeof s==="object"){pref.input=typeof s.input==="string"?s.input:"";pref.output=typeof s.output==="string"?s.output:"";}}catch(e){}
+const AC=window.AudioContext||window.webkitAudioContext;
+const ctxSink=!!(AC&&AC.prototype&&"setSinkId" in AC.prototype);
+const elSink=typeof HTMLMediaElement!=="undefined"&&"setSinkId" in HTMLMediaElement.prototype;
+const outMode=ctxSink?"context":(elSink&&AC&&AC.prototype.createMediaStreamDestination?"element":"none");
+const subs=[];const routes=new Map();let known=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(pref));}catch(e){}}
+function emit(kind){subs.forEach(f=>{try{f(kind,Object.assign({},pref));}catch(e){}});}
+function okId(kind,id){if(!id)return "";if(!known)return id;return known.some(d=>d.kind===kind&&d.deviceId===id)?id:"";}
+async function list(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices)return {inputs:[],outputs:[]};
+  let ds=[];try{ds=await navigator.mediaDevices.enumerateDevices();}catch(e){}
+  known=ds;return {inputs:ds.filter(d=>d.kind==="audioinput"),outputs:ds.filter(d=>d.kind==="audiooutput")};
+}
+// Mic: getUserMedia with the chosen device; if it's missing, fall back to the default.
+async function getMic(base){
+  const a=Object.assign({},base||{});const id=okId("audioinput",pref.input);
+  if(id){try{return await navigator.mediaDevices.getUserMedia({audio:Object.assign({},a,{deviceId:{exact:id}})});}
+    catch(e){if(e&&e.name!=="OverconstrainedError"&&e.name!=="NotFoundError"&&e.name!=="NotReadableError")throw e;}}
+  return navigator.mediaDevices.getUserMedia({audio:a});
+}
+function sinkFor(){return okId("audiooutput",pref.output);}
+const origConnect=typeof AudioNode!=="undefined"?AudioNode.prototype.connect:null;
+function route(ctx){
+  let r=routes.get(ctx);if(r)return r;
+  r={ctx};routes.set(ctx,r);
+  if(outMode==="element"){
+    r.bus=ctx.createGain();r.msd=ctx.createMediaStreamDestination();
+    r.el=new Audio();r.el.autoplay=true;r.el.srcObject=r.msd.stream;
+  }
+  applyRoute(r);return r;
+}
+function applyRoute(r){
+  const id=sinkFor();
+  if(outMode==="context"){try{const p=r.ctx.setSinkId(id);if(p&&p.catch)p.catch(()=>{try{r.ctx.setSinkId("");}catch(e){}});}catch(e){}return;}
+  if(outMode!=="element")return;
+  try{r.bus.disconnect();}catch(e){}
+  if(id){origConnect.call(r.bus,r.msd);try{r.el.setSinkId(id).catch(()=>{});}catch(e){}r.el.play().catch(()=>{});}
+  else{origConnect.call(r.bus,r.ctx.destination);try{r.el.pause();}catch(e){}}
+}
+if(origConnect&&outMode!=="none"){
+  AudioNode.prototype.connect=function(dst){
+    if(typeof AudioDestinationNode!=="undefined"&&dst instanceof AudioDestinationNode){
+      const r=route(dst.context);
+      if(r.bus){const args=[].slice.call(arguments);args[0]=r.bus;return origConnect.apply(this,args);}
+    }
+    return origConnect.apply(this,arguments);
+  };
+}
+function set(kind,id){id=id||"";if(kind==="input"){if(pref.input===id)return;pref.input=id;}else{if(pref.output===id)return;pref.output=id;routes.forEach(applyRoute);}save();emit(kind);}
+// Resume the <audio> route after a user gesture (autoplay rules).
+addEventListener("pointerdown",()=>routes.forEach(r=>{if(r.el&&sinkFor())r.el.play().catch(()=>{});}),true);
+if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)
+  navigator.mediaDevices.addEventListener("devicechange",async()=>{await list();routes.forEach(applyRoute);emit("list");});
+window.MuzikDevices={KEY,list,getMic,set,get:()=>Object.assign({},pref),outMode,register:route,
+  onChange(f){subs.push(f);},get input(){return okId("audioinput",pref.input);},get output(){return sinkFor();}};
+})();

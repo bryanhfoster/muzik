@@ -422,7 +422,28 @@ html body .hud .pad .badge[hidden]{display:none}
  html body .hud .menu-wrap{order:4}
  html body .hud .bar{order:5;flex:1 0 100%;justify-content:space-between;gap:4px}
 }
+
+/* audio devices panel */
+#devPanel{display:none;position:fixed;inset:0;z-index:90;background:#000;color:#fff;flex-direction:column;overflow:auto;padding:12px;box-sizing:border-box;gap:12px}
+#devPanel.open{display:flex}
+#devPanel .dv-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#devPanel .dv-head b{font-size:44px;line-height:1}
+#devPanel .dv-cols{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:800px){#devPanel .dv-cols{grid-template-columns:1fr 1fr}}
+#devPanel .dv-col{border:4px solid #555;border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:10px}
+#devPanel .dv-col.na{opacity:.35;filter:grayscale(1)}
+#devPanel .dv-top{display:flex;align-items:center;gap:12px;font-size:48px;line-height:1}
+#devPanel .dv-meter{flex:1;height:36px;border:4px solid #fff;border-radius:18px;overflow:hidden;background:#111}
+#devPanel .dv-meter i{display:block;height:100%;width:0;background:#3dff6e;transition:width .06s}
+#devPanel .dv-test{width:84px;height:72px;border-radius:18px;border:4px solid #fff;background:#222;font-size:40px;color:#fff}
+#devPanel .dv-test:active{background:#ffe066}
+#devPanel .dv-item{display:flex;align-items:center;gap:14px;min-height:76px;padding:10px 14px;border:4px solid #666;border-radius:18px;background:#111;color:#fff;font:800 24px/1.2 system-ui;text-align:left;width:100%;word-break:break-word}
+#devPanel .dv-item .ck{flex:none;width:52px;height:52px;border-radius:50%;border:4px solid #666;display:grid;place-items:center;font-size:34px;color:transparent}
+#devPanel .dv-item.on{border-color:#3dff6e;background:#0d2a14}
+#devPanel .dv-item.on .ck{background:#3dff6e;border-color:#3dff6e;color:#000;box-shadow:0 0 22px 6px #3dff6e}
+#devPanel .dv-na{font-size:56px;text-align:center}
 </style>
+<script src="audio.js"></script>
 <script>addEventListener("keydown",e=>{if(window.__obKey)window.__obKey(e);},true);</script>
 </head>
 <body>
@@ -498,6 +519,7 @@ html body .hud .pad .badge[hidden]{display:none}
       <button id="roomBtn" class="menu-tile" type="button" title="Open the room playground"><span class="tic">🏠</span><span class="tlb">Room</span></button>
       <button id="vizBtn" class="menu-tile" type="button" title="Visualizer" onclick="location.href='/visualizer.html'"><span class="tic">🌀</span><span class="tlb">Viz</span></button>
       <button id="fifthsBtn" class="menu-tile" type="button" title="Chords: circle of fifths, hex grid, chord pads" onclick="location.href='/fifths.html'"><span class="tic">⬡</span><span class="tlb">Chords</span></button>
+      <button id="devBtn" class="menu-tile" type="button" title="Audio devices: mic and speaker"><span class="tic">🎧</span><span class="tlb">Audio</span></button>
     </div>
     <div class="menu-group" aria-label="Help">
       <button id="obReplay" class="menu-tile" type="button" title="Replay the friendly tour"><span class="tic">👆</span><span class="tlb">Tour</span></button>
@@ -512,6 +534,13 @@ html body .hud .pad .badge[hidden]{display:none}
     </div>
   </div>
   <input id="loadFile" type="file" accept="application/json,.json" hidden>
+</div>
+<div id="devPanel" role="dialog" aria-modal="true" aria-label="Audio devices">
+  <div class="dv-head"><b>🎧</b><button type="button" id="devClose" class="menu-x" style="width:72px;height:72px;font-size:36px" title="Close">✕</button></div>
+  <div class="dv-cols">
+    <div class="dv-col" id="dvIn"><div class="dv-top"><span>🎤</span><div class="dv-meter" title="Mic level"><i id="dvLvl"></i></div></div><div id="dvInList"></div></div>
+    <div class="dv-col" id="dvOut"><div class="dv-top"><span>🔊</span><span style="flex:1"></span><button type="button" class="dv-test" id="dvTest" title="Test tone">🔔</button></div><div id="dvOutList"></div></div>
+  </div>
 </div>
 <div class="keys-row"><div id="keys" class="spectrum"></div></div>
 <div class="seam" id="tlHandle" role="separator" aria-orientation="horizontal" title="Drag to resize the timeline. Double-click to collapse."><span class="grip"></span><button type="button" class="tl-toggle" id="tlToggle" title="Collapse or expand the timeline">▲ Hide</button></div>
@@ -2396,7 +2425,7 @@ async function openMic(){
   if(micStream) return true;
   audio(); if(ac.state==="suspended") await ac.resume();
   try{
-    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    micStream=await MuzikDevices.getMic({echoCancellation:false,noiseSuppression:false,autoGainControl:false});
     micNode=ac.createMediaStreamSource(micStream);
     if(analyser) micNode.connect(analyser);
     micOn=true;
@@ -2719,6 +2748,67 @@ addEventListener("resize", ()=>{ if($("desk")) render(); });
     if(!raf) raf=requestAnimationFrame(frame);
   }, {passive:true});
   mq.addEventListener&&mq.addEventListener("change", ()=>{ pts.length=0; ctx.clearRect(0,0,W,H); });
+})();
+
+/* ---------- AUDIO DEVICES PANEL ---------- */
+(function(){
+  const D=window.MuzikDevices; if(!D) return;
+  let lvlStream=null,lvlCtx=null,lvlRaf=0,tries=false;
+  function name(d,i,kind){ return d.label || (kind==="in"?"🎤 ":"🔊 ")+(i+1); }
+  function item(id,label,on,cb){ const b=document.createElement("button"); b.type="button"; b.className="dv-item"+(on?" on":""); b.dataset.id=id;
+    b.innerHTML='<span class="ck">✓</span><span></span>'; b.lastChild.textContent=label; b.onclick=cb; return b; }
+  async function render(){
+    let {inputs,outputs}=await D.list();
+    if(!tries && inputs.length && inputs.every(d=>!d.label)){ tries=true;
+      try{ const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>t.stop()); ({inputs,outputs}=await D.list()); }catch(e){} }
+    const cur=D.get(), inId=D.input, outId=D.output;
+    const il=$("dvInList"); il.textContent="";
+    il.appendChild(item("", "⭐ Default", !inId, ()=>{D.set("input",""); render();}));
+    inputs.filter(d=>d.deviceId&&d.deviceId!=="default"&&d.deviceId!=="communications").forEach((d,i)=>il.appendChild(item(d.deviceId,name(d,i,"in"),d.deviceId===inId,()=>{D.set("input",d.deviceId); render();})));
+    const ol=$("dvOutList"); ol.textContent="";
+    if(D.outMode==="none"){ $("dvOut").classList.add("na"); $("dvTest").disabled=false; ol.innerHTML='<div class="dv-na">⚙️</div>'; return; }
+    ol.appendChild(item("", "⭐ Default", !outId, ()=>{D.set("output",""); render();}));
+    outputs.filter(d=>d.deviceId&&d.deviceId!=="default"&&d.deviceId!=="communications").forEach((d,i)=>ol.appendChild(item(d.deviceId,name(d,i,"out"),d.deviceId===outId,()=>{D.set("output",d.deviceId); render();})));
+  }
+  function stopLevel(){ cancelAnimationFrame(lvlRaf); if(lvlStream) lvlStream.getTracks().forEach(t=>t.stop()); lvlStream=null; if(lvlCtx){ try{lvlCtx.close();}catch(e){} } lvlCtx=null; const l=$("dvLvl"); if(l) l.style.width="0"; }
+  async function startLevel(){
+    stopLevel(); if(!$("devPanel").classList.contains("open")) return;
+    try{
+      const s=await D.getMic({});
+      if(!$("devPanel").classList.contains("open")){ s.getTracks().forEach(t=>t.stop()); return; }
+      lvlStream=s; lvlCtx=new (window.AudioContext||window.webkitAudioContext)();
+      const an=lvlCtx.createAnalyser(); an.fftSize=1024; lvlCtx.createMediaStreamSource(s).connect(an);
+      const buf=new Float32Array(an.fftSize);
+      const tick=()=>{ an.getFloatTimeDomainData(buf); let m=0; for(let i=0;i<buf.length;i++) m=Math.max(m,Math.abs(buf[i]));
+        $("dvLvl").style.width=Math.min(100,Math.round(Math.sqrt(m)*120))+"%"; lvlRaf=requestAnimationFrame(tick); };
+      tick();
+    }catch(e){}
+  }
+  function testTone(){
+    const C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+    const c=(typeof ac!=="undefined"&&ac)?ac:(window.__devToneCtx||(window.__devToneCtx=new C()));
+    if(c.state==="suspended") c.resume();
+    const t=c.currentTime+0.02; [0,0.18,0.36].forEach((d,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type="sine";
+      o.frequency.value=[660,880,1320][i]; g.gain.setValueAtTime(0.0001,t+d); g.gain.exponentialRampToValueAtTime(0.35,t+d+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.3); o.connect(g); g.connect(c.destination); o.start(t+d); o.stop(t+d+0.35); });
+  }
+  function open(){ if(typeof setMenuOpen==="function") setMenuOpen(false); $("devPanel").classList.add("open"); tries=false; render().then(startLevel); }
+  function close(){ $("devPanel").classList.remove("open"); stopLevel(); }
+  $("devBtn").onclick=e=>{ e.stopPropagation(); open(); };
+  $("devClose").onclick=close;
+  $("dvTest").onclick=testTone;
+  addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("devPanel").classList.contains("open")) close(); });
+  D.onChange(async kind=>{
+    if(kind==="list"){ if($("devPanel").classList.contains("open")) render(); return; }
+    if(kind!=="input") return;
+    if($("devPanel").classList.contains("open")) startLevel();
+    // restart the live studio mic on the new device (wait if a take is recording)
+    const restart=async()=>{ if(!micStream) return;
+      if(typeof recorder!=="undefined"&&recorder&&recorder.state!=="inactive"){ setTimeout(restart,500); return; }
+      closeMic(); await openMic(); };
+    restart();
+  });
+  window.__devPanel={open,close,render};
 })();
 </script>
 <script src="onboarding.js" defer></script>

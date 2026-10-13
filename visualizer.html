@@ -74,6 +74,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   <div class="deny" title="No microphone">🎤✕</div>
   <button id="go2" class="alt" title="Studio sound">🎹</button>
 </div></div>
+<script src="audio.js"></script>
 <script>
 (function(){
 "use strict";
@@ -99,10 +100,11 @@ function stopSrc(){if(srcNode){try{srcNode.disconnect();}catch(e){} if(srcNode.m
 async function startMic(){
   mkCtx();stopSrc();
   try{
-    const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const st=await MuzikDevices.getMic({echoCancellation:false,noiseSuppression:false,autoGainControl:false});
     srcNode=ac.createMediaStreamSource(st);srcNode.connect(an);$("src").textContent="🎤";go();
   }catch(e){$("start").classList.add("denied");$("start").style.display="grid";$("go").style.display="none";}
 }
+if(window.MuzikDevices)MuzikDevices.onChange(k=>{if(k==="input"&&srcNode&&srcNode.mediaStream)startMic();});
 // "studio sound": play the saved studio key as a gentle loop through our own graph (the studio itself runs on another page).
 function startDemo(){
   mkCtx();stopSrc();
