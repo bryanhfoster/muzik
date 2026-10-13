@@ -1,6 +1,6 @@
 /* MUZIK service worker */
-const VERSION = "muzik-v8";
-const SHELL = ["./", "./studio.html", "./index.html", "./onboarding.js", "./install.js", "./playground.html", "./audio.js", "./visualizer.html",
+const VERSION = "muzik-v14";
+const SHELL = ["./", "./studio.html", "./index.html", "./onboarding.js", "./install.js", "./playground.html", "./audio.js", "./visualizer.html", "./fifths.html",
   "./manifest.webmanifest", "./favicon.svg", "./apple-touch-icon.png",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
 self.addEventListener("install", e => {
@@ -12,14 +12,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
-  const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
-  if (isHTML) {
-    e.respondWith(fetch(req).then(r => { if (r.ok) { const c = r.clone(); caches.open(VERSION).then(ca => ca.put(req, c)); } return r; })
-      .catch(() => caches.match(req, {ignoreSearch: true}).then(r => r || caches.match("./studio.html"))));
+  {
+    e.respondWith(fetch(req).then(r => { if (!r.ok) throw 0; const c = r.clone(); caches.open(VERSION).then(ca => ca.put(req, c)); return r; })
+      .catch(() => caches.match(req, {ignoreSearch: true}).then(r => r || (req.mode === "navigate" ? caches.match("./studio.html") : fetch(req)))));
     return;
   }
-  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
-    if (r.ok && r.type === "basic") { const c = r.clone(); caches.open(VERSION).then(ca => ca.put(req, c)); }
-    return r;
-  })));
 });
